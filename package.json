@@ -1,0 +1,28 @@
+{
+  "name": "restrict-focus",
+  "version": "0.0.0",
+  "description": "A small library to restrict focus/tabbing to only within a specified element.",
+  "homepage": "https://github.com/nullset/restrict-focus",
+  "main": "src/index.js",
+  "keywords": [
+    "focus",
+    "tab",
+    "tabbing"
+  ],
+  "files": [
+    "src/index.js"
+  ],
+  "author": "Nathan Wright",
+  "license": "ISC",
+  "scripts": {
+    "dev": "vite --port 8082",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^2.6.4"
+  },
+  "dependencies": {
+    "restrict-scroll": "^1.3.4"
+  }
+}
