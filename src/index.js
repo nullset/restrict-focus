@@ -266,6 +266,12 @@ function preventOutsideEvent(event) {
   event.stopImmediatePropagation();
 }
 
+function fireEvent({ element, eventName }) {
+  const event = new CustomEvent("restrict-focus:added", { detail: element });
+  document.dispatchEvent(event);
+  element.dispatchEvent(event);
+}
+
 const restrictFocus = {
   list: [],
 
@@ -286,6 +292,8 @@ const restrictFocus = {
       const focusableElements = getTabbableElements(element);
       focusableElements[0]?.focus();
     }
+
+    fireEvent({ element, eventName: "added" });
     return this;
   },
 
@@ -300,6 +308,7 @@ const restrictFocus = {
     if (typeof deleteIndex !== "undefined") {
       this.list = this.list.splice(deleteIndex, 1);
     }
+    fireEvent({ element, eventName: "removed" });
     return this;
   },
 
