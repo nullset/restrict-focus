@@ -1,6 +1,3 @@
-import { position } from "caret-pos";
-window.caretPosition = position;
-
 // TODO: This needs to be revamped a bit. First need to check if element has shadowRoot. If it does,
 // Then walk shadow root, look for any tabbale nodes, and simultaneously look into assignedNodes. Do not
 // look into light dom any other way. Otherwise it is possible that things will be out of order, since populating
@@ -96,8 +93,6 @@ function handleBlur(event) {
     event.stopImmediatePropagation();
     event?.target?.focus();
   }
-
-  // FIXME: How do we capture that something was `.focus()`-ed into??
 }
 
 function handleKeyboardNavigation({
@@ -271,17 +266,6 @@ function preventOutsideEvent(event) {
   event.stopImmediatePropagation();
 }
 
-// function preventFocusChange(event) {
-//   // TODO: Why is this not firing when $0.focus()?
-//   debugger;
-//   // event.preventDefault();
-//   // event.stopImmediatePropagation();
-// }
-
-// window.addEventListener('keydown', handleKeyboardEvent, { capture: true });
-// window.addEventListener('keypress', handleKeyboardEvent, { capture: true });
-// window.addEventListener('keyup', handleKeyboardEvent, { capture: true });
-
 const restrictFocus = {
   list: [],
 
@@ -345,5 +329,3 @@ document.body.addEventListener("click", preventOutsideEvent, {
 });
 
 export default restrictFocus;
-
-window.restrictFocus = restrictFocus;
