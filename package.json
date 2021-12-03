@@ -1,6 +1,6 @@
 {
   "name": "restrict-focus",
-  "version": "0.0.0",
+  "version": "0.0.5",
   "description": "A small library to restrict focus/tabbing to only within a specified element.",
   "homepage": "https://github.com/nullset/restrict-focus",
   "main": "src/index.js",
