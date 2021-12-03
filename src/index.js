@@ -1,3 +1,6 @@
+import { position } from "caret-pos";
+window.caretPosition = position;
+
 // TODO: This needs to be revamped a bit. First need to check if element has shadowRoot. If it does,
 // Then walk shadow root, look for any tabbale nodes, and simultaneously look into assignedNodes. Do not
 // look into light dom any other way. Otherwise it is possible that things will be out of order, since populating
@@ -8,9 +11,11 @@
 function getTabbableElements(element, tabbableElements = []) {
   element.querySelectorAll("*").forEach((node) => {
     if (
-      node.tabIndex > -1 &&
+      (node.tabIndex > -1 ||
+        (node.isContentEditable && node.hasAttribute("contenteditable"))) &&
       !node.disabled &&
       !node.getAttribute("disabled")
+      // TODO: nodes can only be focused if they are currently visible too
     ) {
       tabbableElements.push(node);
 
@@ -20,7 +25,11 @@ function getTabbableElements(element, tabbableElements = []) {
   });
 
   // Sort the tabbable elements, because a node with a tabindex == 0 should come before one with tabindex == 1.
-  return tabbableElements.sort((a, b) => a.tabIndex - b.tabIndex);
+  return tabbableElements.sort((a, b) => {
+    const aIndex = a.tabIndex === -1 ? 0 : a.tabIndex;
+    const bIndex = b.tabIndex === -1 ? 0 : b.tabIndex;
+    return aIndex - bIndex;
+  });
 }
 
 const focusableElements = {
@@ -40,6 +49,7 @@ const focusableElements = {
 
   // Second argument can be a cached list of elements (useful if you just looked it up elsewhere) ... use with caution.
   next(currentElement, elements = this.list) {
+    // TODO: (⚡) Rather than worry about whether or not a focusable element is actually _ABLE TO BE FOCUSED ON_ (ex. may be hidden) we can just try to actually `focus()` on it and then check document.activeElement. If document.activeElement is not the same thing as the element we just focused on, then it obviously cannot be focused on ;-)
     const index = elements.indexOf(currentElement);
     if (index === elements.length - 1) {
       return elements[0];
@@ -58,31 +68,6 @@ const focusableElements = {
     return element;
   },
 };
-
-// function focusableElements() {
-//   return {
-//     get list() {
-//       return getTabbableElements(restrictFocus.activeElement);
-//     },
-//     previous(currentElement, elements = this.list) {
-//       const index = elements.indexOf(currentElement);
-//       if (index === 0) {
-//         return elements[elements.length - 1];
-//       } else {
-//         return elements[index - 1];
-//       }
-//     },
-//     next(currentElement, elements = this.list) {
-//       const index = elements.indexOf(currentElement);
-//       debugger;
-//       if (index === elements.length - 1) {
-//         return elements[0];
-//       } else {
-//         return elements[index + 1];
-//       }
-//     },
-//   };
-// }
 
 window.focusableElements = focusableElements;
 
@@ -169,23 +154,79 @@ function handleKeyDown(event) {
     if (event.target.closest("select, video, audio")) return;
 
     // If it natively handles keyboard navigation, but should behave differently depending on cursor position.
-    if (event.target.closest("input, textarea, [contenteditable]")) {
-      // TODO: Make it handle multiple up/down arrow keys
-      // User has selected a range of text, so do nothing.
-      if (event.target.selectionStart !== event.target.selectionEnd) return;
+    const inputElement = event.target.closest(
+      "input, textarea, [contenteditable]"
+    );
 
-      if (event.key === "ArrowUp" && event.target.selectionStart === 0) {
-        focusableElements.previous(event.target, focusElements)?.focus();
-        return;
-      } else if (
-        event.key === "ArrowDown" &&
-        event.target.selectionStart === event.target.value.length
-      ) {
-        focusableElements.next(document.activeElement, focusElements)?.focus();
+    if (inputElement) {
+      // Handles <input> and <textarea>.
+      if (inputElement.matches("input, textarea")) {
+        // User has selected a range of text, so do nothing.
+        if (inputElement.selectionStart !== inputElement.selectionEnd) return;
+
+        // If user is at the start/end of an input element's value, then change the focused element.
+        if (event.key === "ArrowUp" && inputElement.selectionStart === 0) {
+          focusableElements.previous(inputElement, focusElements)?.focus();
+          return;
+        } else if (
+          event.key === "ArrowDown" &&
+          inputElement.selectionStart === inputElement.value.length
+        ) {
+          focusableElements
+            .next(document.activeElement, focusElements)
+            ?.focus();
+          return;
+        }
+        // Default case (probably want to do nothing).
         return;
       }
-      // Default case (probably want to do nothing).
-      return;
+
+      // Handles anything that is [contenteditable].
+      if (inputElement.matches("[contenteditable]")) {
+        const selection = getSelection();
+
+        // If the selection range start and end are not the same, then do nothing, as we've selected text.
+        const range = selection.getRangeAt(selection.rangeCount - 1);
+        if (
+          range.startContainer !== range.endContainer ||
+          range.startOffset !== range.endOffset
+        )
+          return;
+
+        const treeWalker = document.createTreeWalker(
+          inputElement,
+          NodeFilter.SHOW_TEXT,
+          {
+            acceptNode: function (node) {
+              if (node.data.trim().length) return NodeFilter.FILTER_ACCEPT;
+            },
+          }
+        );
+
+        const firstNode = treeWalker.firstChild();
+        let lastNode;
+        while (treeWalker.nextNode()) {
+          if (treeWalker.currentNode) lastNode = treeWalker.currentNode;
+        }
+
+        // debugger;
+        // If the selection ends on a node and that node is not the first or last node of the contenteditable then do nothing.
+        if (
+          selection.focusNode !== firstNode &&
+          selection.focusNode !== lastNode
+        )
+          return;
+
+        // If the selection ends on the first node but the range start/end are not at the start of the node then do nothing.
+        if (selection.focusNode === firstNode && range.endOffset !== 0) return;
+
+        // If the selection ends on the last node but the range start/end are not at the end of the node then do nothing.
+        if (
+          selection.focusNode === lastNode &&
+          range.endOffset !== selection.focusNode.data.length - 1
+        )
+          return;
+      }
     }
 
     let currentIndex;
@@ -219,9 +260,6 @@ function handleKeyDown(event) {
     const firstFocusableElement = focusElements[0];
     if (firstFocusableElement) firstFocusableElement.focus();
   }
-
-  // // If any of our activeElements contain the target node, then any tabbing will be handled natively.
-  // if (!activeElements.any((node) => node.contains(target))) return;
 }
 
 function handleKeyUp(event) {
