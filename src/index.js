@@ -232,6 +232,7 @@ function handleKeyDown(event) {
         break;
       case "ArrowDown":
         focusableElements.next(document.activeElement, focusElements)?.focus();
+        // TODO: Need to handle cursor position when arrow down/up into a [contenteditable]
         break;
       case "Home":
         focusableElements.first(focusElements)?.focus();
