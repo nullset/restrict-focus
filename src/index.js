@@ -165,20 +165,14 @@ function handleKeyDown(event) {
         if (inputElement.selectionStart !== inputElement.selectionEnd) return;
 
         // If user is at the start/end of an input element's value, then change the focused element.
-        if (event.key === "ArrowUp" && inputElement.selectionStart === 0) {
-          focusableElements.previous(inputElement, focusElements)?.focus();
+        if (event.key === "ArrowUp" && inputElement.selectionStart !== 0)
           return;
-        } else if (
+
+        if (
           event.key === "ArrowDown" &&
-          inputElement.selectionStart === inputElement.value.length
-        ) {
-          focusableElements
-            .next(document.activeElement, focusElements)
-            ?.focus();
+          inputElement.selectionEnd !== inputElement.value.length
+        )
           return;
-        }
-        // Default case (probably want to do nothing).
-        return;
       }
 
       // Handles anything that is [contenteditable].
