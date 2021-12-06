@@ -29,9 +29,74 @@ function getTabbableElements(element, tabbableElements = []) {
   });
 }
 
+function getAllElements(elements, list = new Set()) {
+  if (!Array.isArray(elements)) elements = [elements];
+
+  elements.forEach((element) => {
+    if (element.nodeType === Node.ELEMENT_NODE) list.add(element);
+
+    if (element.shadowRoot) {
+      getAllElements(element.shadowRoot, list);
+    } else {
+      element.querySelectorAll("*").forEach((node) => {
+        if (node.shadowRoot) {
+          getAllElements(node, list);
+        } else if (node.tagName === "SLOT") {
+          node.assignedElements().forEach((assignedElement) => {
+            return getAllElements(assignedElement, list);
+          });
+        } else {
+          if (node.nodeType === Node.ELEMENT_NODE) list.add(node);
+        }
+
+        // list.add(node);
+        // if (!node.shadowRoot && node.tagName !== "SLOT") {
+        //   list.add(node);
+        // } else if (node.tagName === "SLOT") {
+        //   node.assignedElements().forEach((slottedElement) => {
+        //     getAllElements(slottedElement, list);
+        //   });
+        // } else if (node.shadowRoot) {
+        //   getAllElements(node.shadowRoot, list);
+        // }
+      });
+    }
+  });
+
+  return list;
+}
+
+function getFocusableElements(element) {
+  const elements = Array.from(getAllElements(element));
+  // console.log(elements);
+
+  // const elements = Array.from(querySelectorAll(element));
+
+  return (
+    elements
+      .filter((node) => {
+        if (
+          (node.tabIndex > -1 ||
+            (node.isContentEditable && node.hasAttribute("contenteditable"))) &&
+          !node.disabled &&
+          !node.getAttribute("disabled")
+          // TODO: nodes can only be focused if they are currently visible too
+        ) {
+          return node;
+        }
+      })
+      // Sort the elements, because a node with a tabindex == 0 should come before one with tabindex == 1.
+      .sort((a, b) => {
+        const aIndex = a.tabIndex === -1 ? 0 : a.tabIndex;
+        const bIndex = b.tabIndex === -1 ? 0 : b.tabIndex;
+        return aIndex - bIndex;
+      })
+  );
+}
+
 const focusableElements = {
   get list() {
-    return getTabbableElements(restrictFocus.activeElement);
+    return getFocusableElements(restrictFocus.activeElement);
   },
 
   // Second argument can be a cached list of elements (useful if you just looked it up elsewhere) ... use with caution.
@@ -289,7 +354,7 @@ const restrictFocus = {
 
     // If we are not currently focused somewhere within the activeElement, focus on the first focusable element.
     if (!element.matches(":focus-within")) {
-      const focusableElements = getTabbableElements(element);
+      const focusableElements = getFocusableElements(element);
       focusableElements[0]?.focus();
     }
 
