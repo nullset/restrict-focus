@@ -142,6 +142,15 @@ const movementKeys = [
   "End",
 ];
 
+// Get the activeElement, regardless of whether it is in tha main document or some arbitrarily deep shadowDOM.
+export function getActiveElement() {
+  let activeElement = document.activeElement;
+  while (activeElement.shadowRoot?.activeElement) {
+    activeElement = activeElement.shadowRoot.activeElement;
+  }
+  return activeElement;
+}
+
 function handleBlur(event) {
   // If no activeElement is specified, then do nothing.
   if (!restrictFocus.activeElement) return;
@@ -295,13 +304,9 @@ function handleKeyDown(event) {
       }
     }
 
-    // Get the activeElement, regardless of whether it is in tha main document or some arbitrarily deep shadowDOM.
-    let activeElement = document.activeElement;
-    while (activeElement.shadowRoot?.activeElement) {
-      activeElement = activeElement.shadowRoot.activeElement;
-    }
-
+    const activeElement = getActiveElement();
     let currentIndex;
+
     switch (event.key) {
       case "ArrowUp":
         focusableElements.previous(activeElement, focusElements)?.focus();
