@@ -143,6 +143,9 @@ const movementKeys = [
 ];
 
 function handleBlur(event) {
+  // If no activeElement is specified, then do nothing.
+  if (!restrictFocus.activeElement) return;
+
   // We're using a modifier key, so even if we're using the tab key we likely don't mean to tab.
   if (event.key && (event.altKey || event.ctrlKey || event.metaKey)) return;
 
@@ -192,6 +195,9 @@ function handleKeyboardNavigation({
 }
 
 function handleKeyDown(event) {
+  // If no activeElement is specified, then do nothing.
+  if (!restrictFocus.activeElement) return;
+
   restrictFocus.keys.add(event.key);
 
   // We're not normally arrowing through things, so do nothing.
@@ -199,9 +205,6 @@ function handleKeyDown(event) {
 
   // We did not push a key that could change focus, so do nothing.
   if (!movementKeys.includes(event.key)) return;
-
-  // If no activeElement is specified, then do nothing.
-  if (!restrictFocus.activeElement) return;
 
   // activeElement does not exist on the page, so do nothing;
   if (!restrictFocus.activeElement.isConnected) return;
@@ -335,6 +338,7 @@ function handleKeyUp(event) {
 }
 
 function preventOutsideEvent(event) {
+  // If no activeElement is specified, then do nothing.
   if (!restrictFocus.activeElement) return;
 
   // Event is happening inside the activeElement, so do nothing.
