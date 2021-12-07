@@ -355,6 +355,7 @@ const restrictFocus = {
 
   get activeElement() {
     const element = this.list[this.list.length - 1];
+    if (!element) return;
     if (element.isConnected) return element;
 
     // Element is no longer on the page, so update the list and go to the previous element.
