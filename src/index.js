@@ -395,24 +395,24 @@ const restrictFocus = {
   keys: new Set(),
 };
 
-document.body.addEventListener("keydown", handleKeyDown, { capture: true });
-document.body.addEventListener("keyup", handleKeyUp, { capture: true });
-document.body.addEventListener("blur", handleBlur, { capture: true });
-// document.body.addEventListener("focus", preventFocusChange, { capture: true });
-document.body.addEventListener("mousedown", preventOutsideEvent, {
+window.addEventListener("keydown", handleKeyDown, { capture: true });
+window.addEventListener("keyup", handleKeyUp, { capture: true });
+window.addEventListener("blur", handleBlur, { capture: true });
+// window.addEventListener("focus", preventFocusChange, { capture: true });
+window.addEventListener("mousedown", preventOutsideEvent, {
   capture: true,
 });
-document.body.addEventListener("mouseup", preventOutsideEvent, {
+window.addEventListener("mouseup", preventOutsideEvent, {
   capture: true,
 });
-document.body.addEventListener("touchstart", preventOutsideEvent, {
+window.addEventListener("touchstart", preventOutsideEvent, {
   capture: true,
 });
-document.body.addEventListener("touchend", preventOutsideEvent, {
+window.addEventListener("touchend", preventOutsideEvent, {
   capture: true,
 });
 
-document.body.addEventListener("click", preventOutsideEvent, {
+window.addEventListener("click", preventOutsideEvent, {
   capture: true,
 });
 
