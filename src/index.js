@@ -209,7 +209,16 @@ function handleKeyDown(event) {
   const target = event.composedPath()[0];
   const focusElements = focusableElements.list;
 
-  if (restrictFocus.activeElement.contains(target)) {
+  // Get the root host node, no matter how deep in the shadowDOM it may be netsed.
+  let hostNode = target;
+  while (
+    hostNode.getRootNode().host &&
+    restrictFocus.activeElement !== hostNode.getRootNode().host
+  ) {
+    hostNode = hostNode.getRootNode().host;
+  }
+
+  if (restrictFocus.activeElement.contains(hostNode)) {
     // If it is an element that natively handles keyboard navigation, do nothing.
     if (event.target.closest("select, video, audio")) return;
 
@@ -283,15 +292,19 @@ function handleKeyDown(event) {
       }
     }
 
+    // Get the activeElement, regardless of whether it is in tha main document or some arbitrarily deep shadowDOM.
+    let activeElement = document.activeElement;
+    while (activeElement.shadowRoot?.activeElement) {
+      activeElement = activeElement.shadowRoot.activeElement;
+    }
+
     let currentIndex;
     switch (event.key) {
       case "ArrowUp":
-        focusableElements
-          .previous(document.activeElement, focusElements)
-          ?.focus();
+        focusableElements.previous(activeElement, focusElements)?.focus();
         break;
       case "ArrowDown":
-        focusableElements.next(document.activeElement, focusElements)?.focus();
+        focusableElements.next(activeElement, focusElements)?.focus();
         // TODO: Need to handle cursor position when arrow down/up into a [contenteditable]
         break;
       case "Home":
@@ -301,11 +314,11 @@ function handleKeyDown(event) {
         focusableElements.last(focusElements)?.focus();
         break;
       case "PageUp":
-        currentIndex = focusElements.indexOf(document.activeElement);
+        currentIndex = focusElements.indexOf(activeElement);
         focusElements[Math.max(currentIndex - 10, 0)]?.focus();
         break;
       case "PageDown":
-        currentIndex = focusElements.indexOf(document.activeElement);
+        currentIndex = focusElements.indexOf(activeElement);
         focusElements[
           Math.min(currentIndex + 10, focusElements.length - 1)
         ]?.focus();
