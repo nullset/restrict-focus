@@ -221,16 +221,10 @@ function handleKeyDown(event) {
   const target = event.composedPath()[0];
   const focusElements = focusableElements.list;
 
-  // Get the root host node, no matter how deep in the shadowDOM it may be netsed.
-  let hostNode = target;
-  while (
-    hostNode.getRootNode().host &&
-    restrictFocus.activeElement !== hostNode.getRootNode().host
+  if (
+    restrictFocus.activeElement.contains(target) ||
+    getAllElements(restrictFocus.activeElement).has(target)
   ) {
-    hostNode = hostNode.getRootNode().host;
-  }
-
-  if (restrictFocus.activeElement.contains(hostNode)) {
     // If it is an element that natively handles keyboard navigation, do nothing.
     if (event.target.closest("select, video, audio")) return;
 
