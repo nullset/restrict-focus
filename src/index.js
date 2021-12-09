@@ -1,35 +1,4 @@
-// TODO: This needs to be revamped a bit. First need to check if element has shadowRoot. If it does,
-// Then walk shadow root, look for any tabbale nodes, and simultaneously look into assignedNodes. Do not
-// look into light dom any other way. Otherwise it is possible that things will be out of order, since populating
-// slots doesn't have to take place in any particular order or location within the light DOM.
-// If it does not have a shadow root, then it's fine just doing a querySelectorAll.
-// FIXME: We should be able to programatically focus to tabIndex == -1, just not tab to them.
-// TODO: Would a TreeWalker do this more efficiently?
-function getTabbableElements(element, tabbableElements = []) {
-  element.querySelectorAll("*").forEach((node) => {
-    if (
-      (node.tabIndex > -1 ||
-        (node.isContentEditable && node.hasAttribute("contenteditable"))) &&
-      !node.disabled &&
-      !node.getAttribute("disabled")
-      // TODO: nodes can only be focused if they are currently visible too
-    ) {
-      tabbableElements.push(node);
-
-      // Dig into any shadowRoot to get more tabbable things!
-      if (node.shadowRoot) getTabbableElements(node, tabbableElements);
-    }
-  });
-
-  // Sort the tabbable elements, because a node with a tabindex == 0 should come before one with tabindex == 1.
-  return tabbableElements.sort((a, b) => {
-    const aIndex = a.tabIndex === -1 ? 0 : a.tabIndex;
-    const bIndex = b.tabIndex === -1 ? 0 : b.tabIndex;
-    return aIndex - bIndex;
-  });
-}
-
-function getAllElements(elements, list = new Set()) {
+export function getAllElements(elements, list = new Set()) {
   if (!Array.isArray(elements)) elements = [elements];
 
   elements.forEach((element) => {
@@ -48,17 +17,6 @@ function getAllElements(elements, list = new Set()) {
         } else {
           if (node.nodeType === Node.ELEMENT_NODE) list.add(node);
         }
-
-        // list.add(node);
-        // if (!node.shadowRoot && node.tagName !== "SLOT") {
-        //   list.add(node);
-        // } else if (node.tagName === "SLOT") {
-        //   node.assignedElements().forEach((slottedElement) => {
-        //     getAllElements(slottedElement, list);
-        //   });
-        // } else if (node.shadowRoot) {
-        //   getAllElements(node.shadowRoot, list);
-        // }
       });
     }
   });
@@ -66,12 +24,8 @@ function getAllElements(elements, list = new Set()) {
   return list;
 }
 
-function getFocusableElements(element) {
+export function getFocusableElements(element) {
   const elements = Array.from(getAllElements(element));
-  // console.log(elements);
-
-  // const elements = Array.from(querySelectorAll(element));
-
   return (
     elements
       .filter((node) => {
@@ -177,9 +131,6 @@ function handleKeyboardNavigation({
   target,
   focusElements = focusableElements.list,
 }) {
-  // We're blurring to something outside the activeElement, so we need to know what we are focusing to.
-  // const focusableElements = getTabbableElements(restrictFocus.activeElement);
-
   // If we tab out of the KeyTrap.activeElement, then we wrap tabbing to the first/last element,
   // depending on direction of tabbing.
   switch (target) {
