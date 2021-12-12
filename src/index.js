@@ -291,7 +291,13 @@ function preventOutsideEvent(event) {
   // If no activeElement is specified, then do nothing.
   if (!restrictFocus.activeElement) return;
 
+  // If we expressly allow this type of event, then let it pass through.
+  // debugger;
+  const allowedEvents = allowEventsOnElement.get(restrictFocus.activeElement);
+  if (allowedEvents.includes(event.type)) return true;
+
   // Event is happening inside the activeElement, so do nothing.
+  // TODO: does this work properly across shadow DOM?
   if (restrictFocus.activeElement.contains(event.target)) return;
 
   event.preventDefault();
@@ -300,9 +306,12 @@ function preventOutsideEvent(event) {
 
 function fireEvent({ element, eventName }) {
   const event = new CustomEvent("restrict-focus:added", { detail: element });
-  document.dispatchEvent(event);
+  window.dispatchEvent(event);
   element.dispatchEvent(event);
 }
+
+// A map of the event types that are allowed on a specific element.
+const allowEventsOnElement = new WeakMap();
 
 const restrictFocus = {
   list: [],
@@ -317,8 +326,9 @@ const restrictFocus = {
     return this.activeElement;
   },
 
-  add(element) {
+  add(element, allowedEvents = []) {
     this.list.push(element);
+    allowEventsOnElement.set(element, allowedEvents);
 
     // If we are not currently focused somewhere within the activeElement, focus on the first focusable element.
     if (!element.matches(":focus-within")) {
