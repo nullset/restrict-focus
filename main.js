@@ -19,9 +19,21 @@ if (!window.customElements.get("web-component-element")) {
   window.customElements.define("web-component-element", WebComponentElement);
 }
 
-document.addEventListener("restrict-focus:added", (e) => {
-  e.detail.style.borderWidth = "3px";
-  e.detail.style.borderStyle = "double";
-  e.detail.style.borderColor = "lime";
+window.addEventListener("restrict-focus:added", (e) => {
+  e.detail.style.boxShadow = "0 0 0 3px lime";
+});
+window.addEventListener("restrict-focus:removed", (e) => {
+  e.detail.style.boxShadow = "";
 });
 restrictFocus.add(document.getElementById("second"));
+
+document.querySelectorAll("button.toggleFocus").forEach((button) => {
+  button.addEventListener("click", (e) => {
+    const section = e.target.closest("div[id]");
+    if (restrictFocus?.activeElement?.contains(button)) {
+      restrictFocus.delete(section);
+    } else {
+      restrictFocus.add(section);
+    }
+  });
+});

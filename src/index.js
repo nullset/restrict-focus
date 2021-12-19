@@ -1,3 +1,5 @@
+// Get list of all elements within a specific element(s).
+// NOTE: Only works with shodow DOM nodes if the shadow DOM is open.
 export function getAllElements(elements, list = new Set()) {
   if (!Array.isArray(elements)) elements = [elements];
 
@@ -24,6 +26,7 @@ export function getAllElements(elements, list = new Set()) {
   return list;
 }
 
+// Get a list of all elements which can be focused on within a specific parent element.
 export function getFocusableElements(element) {
   const elements = Array.from(getAllElements(element));
   return (
@@ -299,8 +302,11 @@ function preventOutsideEvent(event) {
   if (allowedEvents.includes(event.type)) return true;
 
   // Event is happening inside the activeElement, so do nothing.
-  // TODO: does this work properly across shadow DOM?
-  if (restrictFocus.activeElement.contains(event.target)) return;
+  if (
+    restrictFocus.activeElement.contains(event.target) ||
+    getAllElements(restrictFocus.activeElement).has(event.target)
+  )
+    return;
 
   // Surface an event that details the event that was restricted. This is useful for listening to certain events that we actually do want to allow, and enabling them to be refired.
   let elementWithPointerEvents = document
@@ -329,7 +335,9 @@ function preventOutsideEvent(event) {
 }
 
 function fireEvent({ element, eventName }) {
-  const event = new CustomEvent("restrict-focus:added", { detail: element });
+  const event = new CustomEvent(`restrict-focus:${eventName}`, {
+    detail: element,
+  });
   window.dispatchEvent(event);
   element.dispatchEvent(event);
 }
@@ -365,14 +373,14 @@ const restrictFocus = {
 
   delete(element) {
     let deleteIndex;
-    for (let i = this.list.length - 1; i > 0; i--) {
+    for (let i = this.list.length - 1; i > -1; i--) {
       if (this.list[i] === element) {
         deleteIndex = i;
         break;
       }
     }
     if (typeof deleteIndex !== "undefined") {
-      this.list = this.list.splice(deleteIndex, 1);
+      this.list.splice(deleteIndex, 1);
     }
     fireEvent({ element, eventName: "removed" });
     return this;
@@ -405,6 +413,7 @@ window.addEventListener("click", preventOutsideEvent, {
 
 export default restrictFocus;
 
+window.restrictFocus = restrictFocus;
 // TODO: JS error when rapidly turning the storybook "open" toggle on and off. Appears to be a storybook issue, as I'm not able to reproduce by toggling the component itself rapidly. Also storybooks' hot reloading is sometimes enough to trigger it.
 
 // FIXME: Hitting the "space" key makes the page move down by one page. This needs to be fixed in "restrict-scroll".
