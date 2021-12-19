@@ -64,6 +64,8 @@ const focusableElements = {
   },
 
   // Second argument can be a cached list of elements (useful if you just looked it up elsewhere) ... use with caution.
+
+  // FIXME: we can just use document.activeElement.shadowRoot.activeElement?.shadowRoot.activeElement...
   next(currentElement, elements = this.list) {
     // TODO: (⚡) Rather than worry about whether or not a focusable element is actually _ABLE TO BE FOCUSED ON_ (ex. may be hidden) we can just try to actually `focus()` on it and then check document.activeElement. If document.activeElement is not the same thing as the element we just focused on, then it obviously cannot be focused on ;-)
     const index = elements.indexOf(currentElement);
@@ -300,6 +302,28 @@ function preventOutsideEvent(event) {
   // TODO: does this work properly across shadow DOM?
   if (restrictFocus.activeElement.contains(event.target)) return;
 
+  // Surface an event that details the event that was restricted. This is useful for listening to certain events that we actually do want to allow, and enabling them to be refired.
+  let elementWithPointerEvents = document
+    .elementsFromPoint(event.clientX, event.clientY)
+    .find((node) => getComputedStyle(node).pointerEvents !== "none");
+
+  while (elementWithPointerEvents.shadowRoot) {
+    elementWithPointerEvents = elementWithPointerEvents.shadowRoot
+      .elementsFromPoint(event.clientX, event.clientY)
+      .find((node) => getComputedStyle(node).pointerEvents !== "none");
+  }
+
+  // debugger;
+
+  // const restrictedEvent = new CustomEvent('restrict-focus:restricted', {
+  //   detail: {
+  //     event,
+  //     targetElement: elementWithPointerEvents,
+  //     focusRestrictedTo: restrictFocus.activeElement,
+  //   },
+  // });
+  // window.dispatchEvent(restrictedEvent);
+
   event.preventDefault();
   event.stopImmediatePropagation();
 }
@@ -310,7 +334,6 @@ function fireEvent({ element, eventName }) {
   element.dispatchEvent(event);
 }
 
-// A map of the event types that are allowed on a specific element.
 const allowEventsOnElement = new WeakMap();
 
 const restrictFocus = {
@@ -381,3 +404,7 @@ window.addEventListener("click", preventOutsideEvent, {
 });
 
 export default restrictFocus;
+
+// TODO: JS error when rapidly turning the storybook "open" toggle on and off. Appears to be a storybook issue, as I'm not able to reproduce by toggling the component itself rapidly. Also storybooks' hot reloading is sometimes enough to trigger it.
+
+// FIXME: Hitting the "space" key makes the page move down by one page. This needs to be fixed in "restrict-scroll".
