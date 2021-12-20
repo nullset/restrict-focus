@@ -353,7 +353,7 @@ const restrictFocus = {
     if (element.isConnected) return element;
 
     // Element is no longer on the page, so update the list and go to the previous element.
-    this.delete(element);
+    this.remove(element);
     return this.activeElement;
   },
 
@@ -372,7 +372,7 @@ const restrictFocus = {
     return this;
   },
 
-  delete(element, options = { callback: undefined }) {
+  remove(element, options = { callback: undefined }) {
     let deleteIndex;
     for (let i = this.list.length - 1; i > -1; i--) {
       if (this.list[i] === element) {

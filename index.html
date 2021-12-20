@@ -13,6 +13,9 @@
         <button id="bar3" onclick="alert()">Click me and I'll alert!</button>
         <input />
         <button id="bar3" onclick="alert()">Click me and I'll alert!</button>
+        <aha-hotkey meta ctrl alt shift key="Space">
+          console.log(this); const a = 3; alert(a);
+        </aha-hotkey>
       </div>
 
       <div id="second">
@@ -23,7 +26,7 @@
           <web-component-element>
             <button>
               NESTED: Web component button
-              <aha-hotkey meta ctrl alt shift key="Space" link="/foo">
+              <aha-hotkey meta ctrl alt shift key="Space">
                 console.log(this); const a = 4; alert(a);
               </aha-hotkey>
             </button>
@@ -57,6 +60,9 @@
         <button id="bar3" onclick="alert()">Click me and I'll alert!</button>
         <input />
         <button id="bar3" onclick="alert()">Click me and I'll alert!</button>
+        <aha-hotkey meta ctrl alt shift key="Space">
+          console.log(this); const a = 5; alert(a);
+        </aha-hotkey>
       </div>
     </div>
     <script type="module" src="/main.js"></script>

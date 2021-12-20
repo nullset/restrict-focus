@@ -133,7 +133,7 @@ document.querySelectorAll("button.toggleFocus").forEach((button) => {
   button.addEventListener("click", (e) => {
     const section = e.target.closest("div[id]");
     if (restrictFocus?.activeElement === section) {
-      restrictFocus.delete(section);
+      restrictFocus.remove(section);
     } else {
       restrictFocus.add(section);
     }
