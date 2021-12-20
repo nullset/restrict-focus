@@ -299,7 +299,7 @@ function preventOutsideEvent(event) {
   // If we expressly allow this type of event, then let it pass through.
   // debugger;
   const allowedEvents = allowEventsOnElement.get(restrictFocus.activeElement);
-  if (allowedEvents.includes(event.type)) return true;
+  if (allowedEvents?.includes(event.type)) return true;
 
   // Event is happening inside the activeElement, so do nothing.
   if (
@@ -349,7 +349,7 @@ const restrictFocus = {
 
   get activeElement() {
     const element = this.list[this.list.length - 1];
-    if (!element) return;
+    if (!element) return document.body;
     if (element.isConnected) return element;
 
     // Element is no longer on the page, so update the list and go to the previous element.
@@ -357,9 +357,9 @@ const restrictFocus = {
     return this.activeElement;
   },
 
-  add(element, allowedEvents = []) {
+  add(element, options = { allowedEvents: [], callback: undefined }) {
     this.list.push(element);
-    allowEventsOnElement.set(element, allowedEvents);
+    allowEventsOnElement.set(element, options.allowedEvents);
 
     // If we are not currently focused somewhere within the activeElement, focus on the first focusable element.
     if (!element.matches(":focus-within")) {
@@ -368,10 +368,11 @@ const restrictFocus = {
     }
 
     fireEvent({ element, eventName: "added" });
+    options?.callback?.call(element, element);
     return this;
   },
 
-  delete(element) {
+  delete(element, options = { callback: undefined }) {
     let deleteIndex;
     for (let i = this.list.length - 1; i > -1; i--) {
       if (this.list[i] === element) {
@@ -383,6 +384,7 @@ const restrictFocus = {
       this.list.splice(deleteIndex, 1);
     }
     fireEvent({ element, eventName: "removed" });
+    options?.callback?.call(element, element);
     return this;
   },
 

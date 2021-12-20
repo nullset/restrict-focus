@@ -1,4 +1,4 @@
-import restrictFocus from "./src/index";
+import restrictFocus, { getAllElements } from "./src/index";
 
 const template = document.createElement("template");
 template.innerHTML = `
@@ -25,15 +25,119 @@ window.addEventListener("restrict-focus:added", (e) => {
 window.addEventListener("restrict-focus:removed", (e) => {
   e.detail.style.boxShadow = "";
 });
-restrictFocus.add(document.getElementById("second"));
+
+const registeredHotKeys = new Map();
+window.registeredHotkeys = registeredHotKeys;
+
+function sortObject(obj) {
+  return Object.keys(obj)
+    .sort()
+    .reduce(function (result, key) {
+      result[key] = obj[key];
+      return result;
+    }, {});
+}
+class AhaHotkeyElement extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: "open" });
+
+    const template = document.createElement("template");
+    template.innerHTML = `<script><slot></slot></script>`;
+
+    const fnStr = this.childNodes[0].textContent.trim();
+    this.fn = /^function|^\(\) =>/.test(fnStr)
+      ? new Function(`return ${fnStr}`).bind(this)()
+      : new Function(fnStr).bind(this);
+    // this.fn = new Function(`return ${fnStr}`)();
+    // const fn = new Function(fnStr);
+    // debugger;
+    // this.shadowRoot.appendChild(template.content.cloneNode(true));
+
+    const meta = this.hasAttribute("meta");
+    const ctrl = this.hasAttribute("ctrl");
+    const alt = this.hasAttribute("alt");
+    const shift = this.hasAttribute("shift");
+    const key = this.getAttribute("key");
+
+    this.complex = JSON.stringify(sortObject({ meta, ctrl, alt, shift, key }));
+    this.symbol = Symbol();
+
+    if (registeredHotKeys.has(this.complex)) {
+      const map = registeredHotKeys.get(this.complex);
+      map.set(this, "alert(1)");
+      registeredHotKeys.set(this.complex, map);
+    } else {
+      const map = new WeakMap();
+      map.set(this, "alert()");
+      registeredHotKeys.set(this.complex, map);
+    }
+  }
+}
+if (!window.customElements.get("aha-hotkey")) {
+  window.customElements.define("aha-hotkey", AhaHotkeyElement);
+}
+
+window.addEventListener("keyup", (e) => {
+  if (!e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey) return;
+
+  const key = e.key.trim() || e.code;
+  const complex = JSON.stringify(
+    sortObject({
+      meta: true,
+      ctrl: true,
+      alt: true,
+      shift: true,
+      key,
+    })
+  );
+
+  const actions = registeredHotKeys.get(complex);
+  if (actions) {
+    // debugger;
+    let hotkeyElement;
+    const allNodes = Array.from(getAllElements(restrictFocus.activeElement));
+    while (!hotkeyElement && allNodes.length) {
+      const node = allNodes.pop();
+      if (actions.has(node)) {
+        hotkeyElement = node;
+      }
+    }
+    if (hotkeyElement) {
+      var link = hotkeyElement.getAttribute("link");
+      if (link) {
+        fetch(link);
+      } else if (hotkeyElement.fn) {
+        hotkeyElement.fn();
+      }
+    }
+  }
+});
+
+// let foo = new MutationObserver((mutations) => {
+//   debugger;
+// });
+// function registerShortcuts(element) {
+//   element.querySelectorAll("aha-hotkey").forEach((hotkey) => {
+//     debugger;
+//   });
+//   foo.observe(element, { childList: true, subtree: true });
+// }
+// restrictFocus.add(document.getElementById("second"), {
+//   callback: (element) => {
+//     registerShortcuts(element);
+//   },
+// });
 
 document.querySelectorAll("button.toggleFocus").forEach((button) => {
   button.addEventListener("click", (e) => {
     const section = e.target.closest("div[id]");
-    if (restrictFocus?.activeElement?.contains(button)) {
+    if (restrictFocus?.activeElement === section) {
       restrictFocus.delete(section);
     } else {
       restrictFocus.add(section);
     }
   });
 });
+
+restrictFocus.add(document.getElementById("second"));

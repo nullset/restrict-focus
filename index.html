@@ -21,7 +21,12 @@
         <button id="baz2">Baz</button>
         <web-component-element>
           <web-component-element>
-            <button>NESTED: Web component button</button>
+            <button>
+              NESTED: Web component button
+              <aha-hotkey meta ctrl alt shift key="Space" link="/foo">
+                console.log(this); const a = 4; alert(a);
+              </aha-hotkey>
+            </button>
           </web-component-element>
           <button>Middle: Web component button</button>
         </web-component-element>
