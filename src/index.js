@@ -32,15 +32,26 @@ export function getFocusableElements(element) {
   return (
     elements
       .filter((node) => {
+        if (!node.isConnected) return;
+        if (node.disabled) return;
+        if (node.hasAttribute("disabled")) return;
+        // Cannot be focused if it is an <a> tag with no `href` attribute.
+        if (node.tagName === "A" && !node.href) return;
+
+        // `contenteditable` areas may not have a tabIndex set, so we have to check for both simultaneously.
         if (
-          (node.tabIndex > -1 ||
-            (node.isContentEditable && node.hasAttribute("contenteditable"))) &&
-          !node.disabled &&
-          !node.getAttribute("disabled")
-          // TODO: nodes can only be focused if they are currently visible too
-        ) {
-          return node;
-        }
+          node.tabIndex < 0 &&
+          !node.isContentEditable &&
+          !node.hasAttribute("contenteditable")
+        )
+          return;
+
+        // This should be the last possible check, as it is an expensive DOM function.
+        const { width, height } = node.getBoundingClientRect();
+        if (!width || !height) return;
+
+        // If all checks pass, then the node is focusable.
+        return node;
       })
       // Sort the elements, because a node with a tabindex == 0 should come before one with tabindex == 1.
       .sort((a, b) => {
