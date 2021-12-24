@@ -138,7 +138,7 @@ function handleBlur(event) {
     // Blur was triggered via a pointer event.
     event.preventDefault();
     event.stopImmediatePropagation();
-    event?.target?.focus();
+    if (event.target && event.target.focus) event.target.focus();
   }
 }
 
