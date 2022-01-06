@@ -324,22 +324,11 @@ function preventOutsideEvent(event) {
     .elementsFromPoint(event.clientX, event.clientY)
     .find((node) => getComputedStyle(node).pointerEvents !== "none");
 
-  while (elementWithPointerEvents.shadowRoot) {
+  while (elementWithPointerEvents && elementWithPointerEvents.shadowRoot) {
     elementWithPointerEvents = elementWithPointerEvents.shadowRoot
       .elementsFromPoint(event.clientX, event.clientY)
       .find((node) => getComputedStyle(node).pointerEvents !== "none");
   }
-
-  // debugger;
-
-  // const restrictedEvent = new CustomEvent('restrict-focus:restricted', {
-  //   detail: {
-  //     event,
-  //     targetElement: elementWithPointerEvents,
-  //     focusRestrictedTo: restrictFocus.activeElement,
-  //   },
-  // });
-  // window.dispatchEvent(restrictedEvent);
 
   event.preventDefault();
   event.stopImmediatePropagation();
