@@ -4,7 +4,7 @@ A small library to restrict focus-type events (focus, tabbing, arrow up/down) to
 
 Works with the shadow DOM, so easy to use with web components.
 
-# To Use
+## To Use
 
 ```
 npm install restrict-scroll

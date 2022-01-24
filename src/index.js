@@ -361,10 +361,16 @@ const restrictFocus = {
     this.list.push(element);
     allowEventsOnElement.set(element, options.allowedEvents);
 
-    // If we are not currently focused somewhere within the activeElement, focus on the first focusable element.
+    // If we are not currently focused somewhere within the activeElement, focus on the activeElement itself.
     if (!element.matches(":focus-within")) {
       const focusableElements = getFocusableElements(element);
-      focusableElements[0]?.focus();
+      const originalTabIndex = restrictFocus.activeElement.tabIndex;
+      // Temporarily set tabIndex to a value which can legitimately be focused on
+      // (while -1 technically is able, it does not change the *NEXT* item to be focused on).
+      restrictFocus.activeElement.tabIndex = 0;
+      restrictFocus.activeElement.focus();
+      // Revert tabIndex to original value.
+      restrictFocus.activeElement.tabIndex = originalTabIndex;
     }
 
     fireEvent({ element, eventName: "added" });
