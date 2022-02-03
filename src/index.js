@@ -421,7 +421,7 @@ window.addEventListener("click", preventOutsideEvent, {
 
 export default restrictFocus;
 
-window.restrictFocus = restrictFocus;
+// window.restrictFocus = restrictFocus;
 // TODO: JS error when rapidly turning the storybook "open" toggle on and off. Appears to be a storybook issue, as I'm not able to reproduce by toggling the component itself rapidly. Also storybooks' hot reloading is sometimes enough to trigger it.
 
 // FIXME: Hitting the "space" key makes the page move down by one page. This needs to be fixed in "restrict-scroll".
