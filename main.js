@@ -1,4 +1,5 @@
 import restrictFocus, { getAllElements } from "./src/index";
+window.restrictFocus = restrictFocus;
 
 const template = document.createElement("template");
 template.innerHTML = `
@@ -114,21 +115,6 @@ window.addEventListener("keyup", (e) => {
   }
 });
 
-// let foo = new MutationObserver((mutations) => {
-//   debugger;
-// });
-// function registerShortcuts(element) {
-//   element.querySelectorAll("aha-hotkey").forEach((hotkey) => {
-//     debugger;
-//   });
-//   foo.observe(element, { childList: true, subtree: true });
-// }
-// restrictFocus.add(document.getElementById("second"), {
-//   callback: (element) => {
-//     registerShortcuts(element);
-//   },
-// });
-
 document.querySelectorAll("button.toggleFocus").forEach((button) => {
   button.addEventListener("click", (e) => {
     const section = e.target.closest("div[id]");
@@ -140,4 +126,8 @@ document.querySelectorAll("button.toggleFocus").forEach((button) => {
   });
 });
 
-restrictFocus.add(document.getElementById("second"));
+restrictFocus.add(document.getElementById("third"));
+restrictFocus.add(document.getElementById("second"), {
+  // Re-enable to test piercing the restriction via some event.
+  allowedEvents: ["mousedown", "mouseup", "click"],
+});

@@ -1,3 +1,5 @@
+const keysSym = Symbol("keys");
+
 // Get list of all elements within a specific element(s).
 // NOTE: Only works with shodow DOM nodes if the shadow DOM is open.
 export function getAllElements(elements, list = new Set()) {
@@ -101,8 +103,6 @@ const focusableElements = {
   },
 };
 
-window.focusableElements = focusableElements;
-
 const movementKeys = [
   "ArrowDown",
   "ArrowUp",
@@ -132,7 +132,7 @@ function handleBlur(event) {
   if (restrictFocus.activeElement.contains(event.relatedTarget)) return;
 
   // If blur was triggered via the Tab key.
-  if (restrictFocus.keys.has("Tab")) {
+  if (restrictFocus[keysSym].has("Tab")) {
     handleKeyboardNavigation({ event, target: event.target });
   } else {
     // Blur was triggered via a pointer event.
@@ -174,7 +174,7 @@ function handleKeyDown(event) {
   // If no activeElement is specified, then do nothing.
   if (!restrictFocus.activeElement) return;
 
-  restrictFocus.keys.add(event.key);
+  restrictFocus[keysSym].add(event.key);
 
   // We're not normally arrowing through things, so do nothing.
   if (event.altKey || event.ctrlKey || event.metaKey) return;
@@ -300,17 +300,12 @@ function handleKeyDown(event) {
 }
 
 function handleKeyUp(event) {
-  restrictFocus.keys.delete(event.key);
+  restrictFocus[keysSym].delete(event.key);
 }
 
 function preventOutsideEvent(event) {
   // If no activeElement is specified, then do nothing.
   if (!restrictFocus.activeElement) return;
-
-  // If we expressly allow this type of event, then let it pass through.
-  // debugger;
-  const allowedEvents = allowEventsOnElement.get(restrictFocus.activeElement);
-  if (allowedEvents?.includes(event.type)) return true;
 
   // Event is happening inside the activeElement, so do nothing.
   if (
@@ -318,6 +313,19 @@ function preventOutsideEvent(event) {
     getAllElements(restrictFocus.activeElement).has(event.target)
   )
     return;
+
+  // If we expressly allow this type of event, then let it pass through.
+  const allowedEvents = allowEventsOnElement.get(restrictFocus.activeElement);
+  if (allowedEvents?.includes(event.type)) {
+    // Allowing the event outside the restrictedFocus list effectively pierces the focus,
+    // meaning we actually want to disable restricted focusing on this particular element.
+    restrictFocus.remove(restrictFocus.activeElement);
+    // for (let i = restrictFocus.list.length - 1; i > -1; i--) {
+    //   restrictFocus.remove(restrictFocus.list[i]);
+    // }
+
+    return true;
+  }
 
   // Surface an event that details the event that was restricted. This is useful for listening to certain events that we actually do want to allow, and enabling them to be refired.
   let elementWithPointerEvents = document
@@ -394,8 +402,10 @@ const restrictFocus = {
     return this;
   },
 
+  focusableElements,
+
   // Keep track of any regular keys being pressed.
-  keys: new Set(),
+  [keysSym]: new Set(),
 };
 
 window.addEventListener("keydown", handleKeyDown, { capture: true });
