@@ -113,7 +113,7 @@ restrictFocus.add(element, {callback: () => { /* some function */ }})`
 restrictFocus.remove(element, {callback: () => { /* some function */ }})`
 ```
 
-## Updates
+## Notable updates
 
 ### 0.1.5
 
