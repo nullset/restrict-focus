@@ -115,6 +115,10 @@ restrictFocus.remove(element, {callback: () => { /* some function */ }})`
 
 ## Notable updates
 
+### 0.1.7
+
+Fix an error that was preventing the `keydown` event from recognizing that the event had happened inside an `input`, `select`, or `textarea`.
+
 ### 0.1.5
 
 When we allow certain events to "pierce" the focus restriction, this means that when those events are fired outside of the active element we want to effectively cancel all restrictFocus restrictions.
