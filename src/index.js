@@ -1,6 +1,6 @@
 const keysSym = Symbol("keys");
 
-// Get list of all elements within a specific element(s).
+// Get a set of all elements within a specific element(s).
 // NOTE: Only works with shodow DOM nodes if the shadow DOM is open.
 export function getAllElements(elements, list = new Set()) {
   if (!Array.isArray(elements)) elements = [elements];
@@ -188,17 +188,12 @@ function handleKeyDown(event) {
   const target = event.composedPath()[0];
   const focusElements = focusableElements.list;
 
-  if (
-    restrictFocus.activeElement.contains(target) ||
-    getAllElements(restrictFocus.activeElement).has(target)
-  ) {
+  if (event.composedPath().includes(restrictFocus.activeElement)) {
     // If it is an element that natively handles keyboard navigation, do nothing.
     if (event.target.closest("select, video, audio")) return;
 
     // If it natively handles keyboard navigation, but should behave differently depending on cursor position.
-    const inputElement = event.target.closest(
-      "input, textarea, [contenteditable]"
-    );
+    const inputElement = target.closest("input, textarea, [contenteditable]");
 
     if (inputElement) {
       // Handles <input> and <textarea>.
@@ -245,7 +240,6 @@ function handleKeyDown(event) {
           if (treeWalker.currentNode) lastNode = treeWalker.currentNode;
         }
 
-        // debugger;
         // If the selection ends on a node and that node is not the first or last node of the contenteditable then do nothing.
         if (
           selection.focusNode !== firstNode &&
@@ -308,11 +302,7 @@ function preventOutsideEvent(event) {
   if (!restrictFocus.activeElement) return;
 
   // Event is happening inside the activeElement, so do nothing.
-  if (
-    restrictFocus.activeElement.contains(event.target) ||
-    getAllElements(restrictFocus.activeElement).has(event.target)
-  )
-    return;
+  if (event.composedPath().includes(restrictFocus.activeElement)) return;
 
   // If we expressly allow this type of event, then let it pass through.
   const allowedEvents = allowEventsOnElement.get(restrictFocus.activeElement);
@@ -320,10 +310,6 @@ function preventOutsideEvent(event) {
     // Allowing the event outside the restrictedFocus list effectively pierces the focus,
     // meaning we actually want to disable restricted focusing on this particular element.
     restrictFocus.remove(restrictFocus.activeElement);
-    // for (let i = restrictFocus.list.length - 1; i > -1; i--) {
-    //   restrictFocus.remove(restrictFocus.list[i]);
-    // }
-
     return true;
   }
 
