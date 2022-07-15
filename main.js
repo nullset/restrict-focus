@@ -21,10 +21,14 @@ if (!window.customElements.get("web-component-element")) {
 }
 
 window.addEventListener("restrict-focus:added", (e) => {
-  e.detail.style.boxShadow = "0 0 0 3px lime";
+  if (e.detail.previouslyFocusedElement)
+    e.detail.previouslyFocusedElement.style.boxShadow = "";
+  e.detail.element.style.boxShadow = "0 0 0 3px lime";
 });
 window.addEventListener("restrict-focus:removed", (e) => {
-  e.detail.style.boxShadow = "";
+  if (e.detail.currentElementWithFocus)
+    e.detail.currentElementWithFocus.style.boxShadow = "0 0 0 3px lime";
+  e.detail.element.style.boxShadow = "";
 });
 
 const registeredHotKeys = new Map();

@@ -115,6 +115,10 @@ restrictFocus.remove(element, {callback: () => { /* some function */ }})`
 
 ## Notable updates
 
+### 0.2.0
+
+Updated the `restrict-focus:added` and `restrict-focus:removed` events to pass additional information in the custom event's `detail` field. This is a breaking change.
+
 ### 0.1.7
 
 Fix an error that was preventing the `keydown` event from recognizing that the event had happened inside an `input`, `select`, or `textarea`.

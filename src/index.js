@@ -328,10 +328,19 @@ function preventOutsideEvent(event) {
   event.stopImmediatePropagation();
 }
 
-function fireEvent({ element, eventName }) {
-  const event = new CustomEvent(`restrict-focus:${eventName}`, {
-    detail: element,
-  });
+function fireEvent({
+  element,
+  eventName,
+  previouslyFocusedElement,
+  currentElementWithFocus,
+}) {
+  const detail = { element };
+  if (previouslyFocusedElement)
+    detail.previouslyFocusedElement = previouslyFocusedElement;
+  if (currentElementWithFocus)
+    detail.currentElementWithFocus = currentElementWithFocus;
+
+  const event = new CustomEvent(`restrict-focus:${eventName}`, { detail });
   window.dispatchEvent(event);
   element.dispatchEvent(event);
 }
@@ -352,6 +361,7 @@ const restrictFocus = {
   },
 
   add(element, options = { allowedEvents: [], callback: undefined }) {
+    const previouslyFocusedElement = this.activeElement;
     this.list.push(element);
     allowEventsOnElement.set(element, options.allowedEvents);
 
@@ -368,7 +378,7 @@ const restrictFocus = {
       }
     }
 
-    fireEvent({ element, eventName: "added" });
+    fireEvent({ element, eventName: "added", previouslyFocusedElement });
     options?.callback?.call(element, element);
     return this;
   },
@@ -384,7 +394,11 @@ const restrictFocus = {
     if (typeof deleteIndex !== "undefined") {
       this.list.splice(deleteIndex, 1);
     }
-    fireEvent({ element, eventName: "removed" });
+    fireEvent({
+      element,
+      eventName: "removed",
+      currentElementWithFocus: this.activeElement,
+    });
     options?.callback?.call(element, element);
     return this;
   },
