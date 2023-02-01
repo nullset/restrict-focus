@@ -373,8 +373,10 @@ const restrictFocus = {
         // (while -1 technically is able, it does not change the *NEXT* item to be focused on).
         restrictFocus.activeElement.tabIndex = 0;
         restrictFocus.activeElement.focus();
-        // Revert tabIndex to original value.
-        restrictFocus.activeElement.tabIndex = originalTabIndex;
+        // Revert tabIndex to original value. Wait a tick to ensure that `.focus()` above has been applied.
+        queueMicrotask(() => {
+          restrictFocus.activeElement.tabIndex = originalTabIndex;
+        });
       }
     }
 
