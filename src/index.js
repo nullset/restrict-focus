@@ -173,7 +173,8 @@ function handleKeyboardNavigation({
     // If we're blurring off something in the middle, then revert focus back to where we came from.
     default:
       event.preventDefault();
-      target?.focus();
+      console.log({ target });
+      if (target && ![window, document].includes(target)) target.focus();
       break;
   }
 }
