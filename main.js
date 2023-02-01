@@ -127,8 +127,8 @@ document.querySelectorAll("button.toggleFocus").forEach((button) => {
 });
 
 setTimeout(() => {
-  restrictFocus.add(document.getElementById("plain-div"));
-  // restrictFocus.add(document.getElementById("third"));
+  // restrictFocus.add(document.getElementById("plain-div"));
+  restrictFocus.add(document.getElementById("third"));
   // restrictFocus.add(document.getElementById("second"), {
   //   // Re-enable to test piercing the restriction via some event.
   //   allowedEvents: ["mousedown", "mouseup", "click"],

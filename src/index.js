@@ -142,6 +142,15 @@ function handleBlur(event) {
   }
 }
 
+function handleFocus(event) {
+  if (
+    restrictFocus.activeElement &&
+    !restrictFocus.activeElement.contains(event.target)
+  ) {
+    restrictFocus.activeElement.focus();
+  }
+}
+
 function handleKeyboardNavigation({
   event,
   target,
@@ -422,7 +431,7 @@ const restrictFocus = {
 window.addEventListener("keydown", handleKeyDown, { capture: true });
 window.addEventListener("keyup", handleKeyUp, { capture: true });
 window.addEventListener("blur", handleBlur, { capture: true });
-// window.addEventListener("focus", preventFocusChange, { capture: true });
+window.addEventListener("focusin", handleFocus, { capture: true });
 window.addEventListener("mousedown", preventOutsideEvent, {
   capture: true,
 });
