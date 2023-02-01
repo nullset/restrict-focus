@@ -1,4 +1,5 @@
 const keysSym = Symbol("keys");
+const origTabIndexSym = Symbol("origTabIndex");
 
 // Get a set of all elements within a specific element(s).
 // NOTE: Only works with shodow DOM nodes if the shadow DOM is open.
@@ -142,6 +143,13 @@ function handleBlur(event) {
   }
 }
 
+function getNextElement(elem, focusElements) {
+  let nextElem = focusableElements.next(elem, focusElements);
+  if (nextElem[origTabIndexSym])
+    nextElem = getNextElement(nextElem, focusElements);
+  return nextElem;
+}
+
 function handleKeyboardNavigation({
   event,
   target,
@@ -159,7 +167,6 @@ function handleKeyboardNavigation({
     // If we're blurring off the last tabble element, tab to the first tabbable element.
     case focusElements[focusElements.length - 1]:
       focusableElements.next(target, focusElements)?.focus();
-      // focusableElements[0].focus();
       break;
 
     // If we're blurring off something in the middle, then revert focus back to where we came from.
@@ -369,14 +376,15 @@ const restrictFocus = {
     if (!element.matches(":focus-within")) {
       if (restrictFocus.activeElement) {
         const originalTabIndex = restrictFocus.activeElement.tabIndex;
-        // Temporarily set tabIndex to a value which can legitimately be focused on
-        // (while -1 technically is able, it does not change the *NEXT* item to be focused on).
-        restrictFocus.activeElement.tabIndex = 0;
+        if (originalTabIndex === -1) {
+          // Temporarily set tabIndex to a value which can legitimately be focused on
+          // (while -1 technically is able, it does not change the *NEXT* item to be focused on).
+          // which then breaks in Firefox when we are tabbing to the next element outside
+          // the restricted area.
+          restrictFocus.activeElement.tabIndex = 0;
+          restrictFocus.activeElement[origTabIndexSym] = originalTabIndex;
+        }
         restrictFocus.activeElement.focus();
-        // Revert tabIndex to original value. Wait a tick to ensure that `.focus()` above has been applied.
-        queueMicrotask(() => {
-          restrictFocus.activeElement.tabIndex = originalTabIndex;
-        });
       }
     }
 
@@ -396,6 +404,11 @@ const restrictFocus = {
     if (typeof deleteIndex !== "undefined") {
       this.list.splice(deleteIndex, 1);
     }
+
+    // Revert tabIndex to original value.
+    element.tabIndex = element[origTabIndexSym];
+    delete element[origTabIndexSym];
+
     fireEvent({
       element,
       eventName: "removed",
