@@ -1,5 +1,4 @@
 const keysSym = Symbol("keys");
-const origTabIndexSym = Symbol("origTabIndex");
 
 // Get a set of all elements within a specific element(s).
 // NOTE: Only works with shodow DOM nodes if the shadow DOM is open.
@@ -141,13 +140,6 @@ function handleBlur(event) {
     event.stopImmediatePropagation();
     if (event.target && event.target.focus) event.target.focus();
   }
-}
-
-function getNextElement(elem, focusElements) {
-  let nextElem = focusableElements.next(elem, focusElements);
-  if (nextElem[origTabIndexSym])
-    nextElem = getNextElement(nextElem, focusElements);
-  return nextElem;
 }
 
 function handleKeyboardNavigation({
@@ -353,6 +345,7 @@ function fireEvent({
 }
 
 const allowEventsOnElement = new WeakMap();
+const origTabIndexSet = new WeakSet();
 
 const restrictFocus = {
   list: [],
@@ -381,8 +374,8 @@ const restrictFocus = {
           // (while -1 technically is able, it does not change the *NEXT* item to be focused on).
           // which then breaks in Firefox when we are tabbing to the next element outside
           // the restricted area.
+          origTabIndexSet.add(restrictFocus.activeElement);
           restrictFocus.activeElement.tabIndex = 0;
-          restrictFocus.activeElement[origTabIndexSym] = originalTabIndex;
         }
         restrictFocus.activeElement.focus();
       }
@@ -406,8 +399,10 @@ const restrictFocus = {
     }
 
     // Revert tabIndex to original value.
-    element.tabIndex = element[origTabIndexSym];
-    delete element[origTabIndexSym];
+    if (origTabIndexSet.has(element)) {
+      origTabIndexSet.delete(element);
+      element.tabIndex = -1;
+    }
 
     fireEvent({
       element,
