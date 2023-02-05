@@ -21,10 +21,10 @@ if (!window.customElements.get("web-component-element")) {
 }
 
 window.addEventListener("restrict-focus:added", (e) => {
-  e.detail.style.boxShadow = "0 0 0 3px lime";
+  e.detail.element.style.boxShadow = "0 0 0 3px lime";
 });
 window.addEventListener("restrict-focus:removed", (e) => {
-  e.detail.style.boxShadow = "";
+  e.detail.element.style.boxShadow = "";
 });
 
 const registeredHotKeys = new Map();
@@ -126,8 +126,11 @@ document.querySelectorAll("button.toggleFocus").forEach((button) => {
   });
 });
 
-restrictFocus.add(document.getElementById("third"));
-restrictFocus.add(document.getElementById("second"), {
-  // Re-enable to test piercing the restriction via some event.
-  allowedEvents: ["mousedown", "mouseup", "click"],
-});
+setTimeout(() => {
+  // restrictFocus.add(document.getElementById("plain-div"));
+  restrictFocus.add(document.getElementById("third"));
+  // restrictFocus.add(document.getElementById("second"), {
+  //   // Re-enable to test piercing the restriction via some event.
+  //   allowedEvents: ["mousedown", "mouseup", "click"],
+  // });
+}, 2000);

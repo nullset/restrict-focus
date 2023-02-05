@@ -142,6 +142,15 @@ function handleBlur(event) {
   }
 }
 
+function handleFocus(event) {
+  if (
+    restrictFocus.activeElement &&
+    !restrictFocus.activeElement.contains(event.target)
+  ) {
+    restrictFocus.activeElement.focus();
+  }
+}
+
 function handleKeyboardNavigation({
   event,
   target,
@@ -159,13 +168,13 @@ function handleKeyboardNavigation({
     // If we're blurring off the last tabble element, tab to the first tabbable element.
     case focusElements[focusElements.length - 1]:
       focusableElements.next(target, focusElements)?.focus();
-      // focusableElements[0].focus();
       break;
 
     // If we're blurring off something in the middle, then revert focus back to where we came from.
     default:
       event.preventDefault();
-      target?.focus();
+      // Handle FF issue where it's possible to focus on either the window or the document.
+      if (target && ![window, document].includes(target)) target.focus();
       break;
   }
 }
@@ -346,6 +355,7 @@ function fireEvent({
 }
 
 const allowEventsOnElement = new WeakMap();
+const origTabIndexSet = new WeakSet();
 
 const restrictFocus = {
   list: [],
@@ -369,12 +379,15 @@ const restrictFocus = {
     if (!element.matches(":focus-within")) {
       if (restrictFocus.activeElement) {
         const originalTabIndex = restrictFocus.activeElement.tabIndex;
-        // Temporarily set tabIndex to a value which can legitimately be focused on
-        // (while -1 technically is able, it does not change the *NEXT* item to be focused on).
-        restrictFocus.activeElement.tabIndex = 0;
+        if (originalTabIndex === -1) {
+          // Temporarily set tabIndex to a value which can legitimately be focused on
+          // (while -1 technically is able, it does not change the *NEXT* item to be focused on).
+          // which then breaks in Firefox when we are tabbing to the next element outside
+          // the restricted area.
+          origTabIndexSet.add(restrictFocus.activeElement);
+          restrictFocus.activeElement.tabIndex = 0;
+        }
         restrictFocus.activeElement.focus();
-        // Revert tabIndex to original value.
-        restrictFocus.activeElement.tabIndex = originalTabIndex;
       }
     }
 
@@ -394,6 +407,13 @@ const restrictFocus = {
     if (typeof deleteIndex !== "undefined") {
       this.list.splice(deleteIndex, 1);
     }
+
+    // Revert tabIndex to original value.
+    if (origTabIndexSet.has(element)) {
+      origTabIndexSet.delete(element);
+      element.tabIndex = -1;
+    }
+
     fireEvent({
       element,
       eventName: "removed",
@@ -412,7 +432,7 @@ const restrictFocus = {
 window.addEventListener("keydown", handleKeyDown, { capture: true });
 window.addEventListener("keyup", handleKeyUp, { capture: true });
 window.addEventListener("blur", handleBlur, { capture: true });
-// window.addEventListener("focus", preventFocusChange, { capture: true });
+window.addEventListener("focusin", handleFocus, { capture: true });
 window.addEventListener("mousedown", preventOutsideEvent, {
   capture: true,
 });
