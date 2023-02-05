@@ -173,7 +173,7 @@ function handleKeyboardNavigation({
     // If we're blurring off something in the middle, then revert focus back to where we came from.
     default:
       event.preventDefault();
-      console.log({ target });
+      // Handle FF issue where it's possible to focus on either the window or the document.
       if (target && ![window, document].includes(target)) target.focus();
       break;
   }
