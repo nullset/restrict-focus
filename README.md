@@ -115,6 +115,12 @@ restrictFocus.remove(element, {callback: () => { /* some function */ }})`
 
 ## Notable updates
 
+### 0.1.9
+
+Fix an issue in Firefox that would allow focus to escape the restricted area if the restricted area had a tabindex of -1.
+
+If the user tabs through focusable elements on the page they may end up tabbing to the _browser's_ UI (ex tabs, address bar, etc.). When focus is restricted and a user tabs _back_ to the page, the focus would end up on the first focusable element, rather than the restricted focus area. Fixed this issue so that the user will always end up within the restricted focus area when tabbing back to the page from the browser's chrome.
+
 ### 0.1.7
 
 Fix an error that was preventing the `keydown` event from recognizing that the event had happened inside an `input`, `select`, or `textarea`.
