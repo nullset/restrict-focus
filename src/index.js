@@ -323,16 +323,28 @@ function preventOutsideEvent(event) {
   }
 
   // Surface an event that details the event that was restricted. This is useful for listening to certain events that we actually do want to allow, and enabling them to be refired.
-  let elementWithPointerEvents = document
-    .elementsFromPoint(event.clientX, event.clientY)
-    .find((node) => getComputedStyle(node).pointerEvents !== "none");
-
-  while (elementWithPointerEvents && elementWithPointerEvents.shadowRoot) {
-    elementWithPointerEvents = elementWithPointerEvents.shadowRoot
-      .elementsFromPoint(event.clientX, event.clientY)
-      .find((node) => getComputedStyle(node).pointerEvents !== "none");
+  let clientX;
+  let clientY;
+  if (event.type === "touchstart" || event.type === "touchend") {
+    if (event.touches.length) {
+      clientX = event.touches[0].clientX;
+      clientY = event.touches[0].clientY;
+    }
+  } else {
+    clientX = event.clientX;
+    clientY = event.clientY;
   }
+  if (typeof clientX === Number && typeof clientY === Number) {
+    let elementWithPointerEvents = document
+      .elementsFromPoint(clientX, clientY)
+      .find((node) => getComputedStyle(node).pointerEvents !== "none");
 
+    while (elementWithPointerEvents && elementWithPointerEvents.shadowRoot) {
+      elementWithPointerEvents = elementWithPointerEvents.shadowRoot
+        .elementsFromPoint(clientX, clientY)
+        .find((node) => getComputedStyle(node).pointerEvents !== "none");
+    }
+  }
   event.preventDefault();
   event.stopImmediatePropagation();
 }

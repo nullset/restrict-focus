@@ -115,6 +115,10 @@ restrictFocus.remove(element, {callback: () => { /* some function */ }})`
 
 ## Notable updates
 
+### 0.1.11
+
+Fixed an error when user is using a touch device (mobile phone) rather than a desktop device.
+
 ### 0.1.9
 
 Fix an issue in Firefox that would allow focus to escape the restricted area if the restricted area had a tabindex of -1.
