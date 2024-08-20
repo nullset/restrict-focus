@@ -7,7 +7,7 @@ Works with the shadow DOM, so easy to use with web components.
 ## To Use
 
 ```
-npm install restrict-scroll
+npm install restrict-focus
 ```
 
 and then
