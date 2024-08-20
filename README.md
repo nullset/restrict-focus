@@ -115,6 +115,10 @@ restrictFocus.remove(element, {callback: () => { /* some function */ }})`
 
 ## Notable updates
 
+### 0.1.12
+
+Click events return an x/y coordinate pair. Ensure that this pair is always a number, greater than or equal to zero, and non-infinite.
+
 ### 0.1.11
 
 Fixed an error when user is using a touch device (mobile phone) rather than a desktop device.

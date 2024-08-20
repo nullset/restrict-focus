@@ -306,6 +306,12 @@ function handleKeyUp(event) {
   restrictFocus[keysSym].delete(event.key);
 }
 
+function isValidNumber(value) {
+  return (
+    !Number.isNaN(value) && !isNaN(value) && value >= 0 && value !== Infinity
+  );
+}
+
 function preventOutsideEvent(event) {
   // If no activeElement is specified, then do nothing.
   if (!restrictFocus.activeElement) return;
@@ -334,7 +340,8 @@ function preventOutsideEvent(event) {
     clientX = event.clientX;
     clientY = event.clientY;
   }
-  if (typeof clientX === Number && typeof clientY === Number) {
+
+  if (isValidNumber(clientX) && isValidNumber(clientY)) {
     let elementWithPointerEvents = document
       .elementsFromPoint(clientX, clientY)
       .find((node) => getComputedStyle(node).pointerEvents !== "none");
