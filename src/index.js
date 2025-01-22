@@ -101,9 +101,6 @@ const focusableElements = {
     const element = elements[elements.length - 1];
     return element;
   },
-
-  // Enable debugging logs.
-  debug: false,
 };
 
 const movementKeys = [
@@ -451,6 +448,9 @@ const restrictFocus = {
 
   // Keep track of any regular keys being pressed.
   [keysSym]: new Set(),
+
+  // Enable debugging logs.
+  debug: false,
 };
 
 window.addEventListener("keydown", handleKeyDown, { capture: true });
