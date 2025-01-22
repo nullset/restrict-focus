@@ -101,6 +101,9 @@ const focusableElements = {
     const element = elements[elements.length - 1];
     return element;
   },
+
+  // Enable debugging logs.
+  debug: false,
 };
 
 const movementKeys = [
@@ -143,6 +146,8 @@ function handleBlur(event) {
 }
 
 function handleFocus(event) {
+  if (restrictFocus.debug)
+    console.log("handleFocus", restrictFocus.activeElement, event);
   if (
     restrictFocus.activeElement &&
     !restrictFocus.activeElement.contains(event.target)
