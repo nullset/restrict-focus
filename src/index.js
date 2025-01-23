@@ -128,12 +128,17 @@ function handleBlur(event) {
   // We're using a modifier key, so even if we're using the tab key we likely don't mean to tab.
   if (event.key && (event.altKey || event.ctrlKey || event.metaKey)) return;
 
-  // If we're blurring within restrictFocus.activeElement, then do nothing, just use native behavior.
-  if (restrictFocus.activeElement.contains(event.relatedTarget)) return;
+  // // If we're blurring within restrictFocus.activeElement, then do nothing, just use native behavior.
+  // if (event.composedPath().includes(restrictFocus.activeElement)) return;
 
   // If blur was triggered via the Tab key.
   if (restrictFocus[keysSym].has("Tab")) {
-    handleKeyboardNavigation({ event, target: event.target });
+    // const actualTarget = event
+    //   .composedPath()
+    //   .find((n) => n instanceof HTMLElement);
+    const actualTarget = event.relatedTarget;
+    if (event.composedPath().includes(actualTarget)) return;
+    handleKeyboardNavigation({ event, target: actualTarget });
   } else {
     // Blur was triggered via a pointer event.
     event.preventDefault();
@@ -163,17 +168,19 @@ function handleKeyboardNavigation({
   switch (target) {
     // If we're blurring off the first tabble element, tab to the last tabbable element.
     case focusElements[0]:
+      debugger;
       focusableElements.previous(target, focusElements)?.focus();
-      // focusableElements[focusableElements.length - 1].focus();
       break;
 
     // If we're blurring off the last tabble element, tab to the first tabbable element.
     case focusElements[focusElements.length - 1]:
-      focusableElements.next(target, focusElements)?.focus();
+      debugger;
+      focusableElements.next(realTarget, focusElements)?.focus();
       break;
 
     // If we're blurring off something in the middle, then revert focus back to where we came from.
     default:
+      debugger;
       event.preventDefault();
       // Handle FF issue where it's possible to focus on either the window or the document.
       if (target && ![window, document].includes(target)) target.focus();
@@ -456,6 +463,7 @@ const restrictFocus = {
 window.addEventListener("keydown", handleKeyDown, { capture: true });
 window.addEventListener("keyup", handleKeyUp, { capture: true });
 window.addEventListener("blur", handleBlur, { capture: true });
+window.addEventListener("focusout", handleBlur, { capture: true });
 window.addEventListener("focusin", handleFocus, { capture: true });
 window.addEventListener("mousedown", preventOutsideEvent, {
   capture: true,
