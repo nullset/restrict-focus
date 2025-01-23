@@ -128,9 +128,6 @@ function handleBlur(event) {
   // We're using a modifier key, so even if we're using the tab key we likely don't mean to tab.
   if (event.key && (event.altKey || event.ctrlKey || event.metaKey)) return;
 
-  // // If we're blurring within restrictFocus.activeElement, then do nothing, just use native behavior.
-  // if (event.composedPath().includes(restrictFocus.activeElement)) return;
-
   // If blur was triggered via the Tab key.
   if (restrictFocus[keysSym].has("Tab")) {
     // const actualTarget = event
