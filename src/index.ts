@@ -288,6 +288,8 @@ class RestrictFocus implements RestrictFocusAPI {
     window.dispatchEvent(event);
     element.dispatchEvent(event);
   }
+
+  utilities = { ShadowTreeWalker, isFocusable };
 }
 
 // Create and export the singleton instance
