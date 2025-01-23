@@ -219,10 +219,16 @@ class RestrictFocus implements RestrictFocusAPI {
     this.boundaries.push(element);
     this.allowEventsOnElement.set(element, options.allowedEvents);
 
-    // If we are not currently focused somewhere within the activeElement, focus on the first boundary element.
+    const focusableElems = Array.from(this.focusableElements(element));
+
     if (!element.matches(":focus-within")) {
-      const focusableElems = Array.from(this.focusableElements(element));
+      // If we are not currently focused somewhere within the activeElement, focus on the first boundary element.
       this.activeElement = focusableElems[0];
+    } else {
+      // If we are focused within the activeElement, then set the activeElement to the currently focused element at the time when the boundary was added.
+      this.activeElement = focusableElems.find((elem) =>
+        elem.matches(":focus")
+      );
     }
 
     this.fireEvent({

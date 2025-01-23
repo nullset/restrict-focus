@@ -142,7 +142,7 @@ setTimeout(() => {
     document.getElementById("third-thing")?.remove();
 
     setTimeout(() => {
-      // restrictFocus.remove(document.getElementById("second"));
+      restrictFocus.remove(document.getElementById("second"));
     }, 2000);
   }, 2000);
 }, 2000);
