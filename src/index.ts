@@ -1,4 +1,4 @@
-// @ts-nocheck
+//// @ts-nocheck
 
 import ShadowTreeWalker, { isFocusable } from "./shadowTreeWalker";
 
@@ -15,27 +15,7 @@ interface EventDetail {
 }
 
 // The public restrictFocus API interface
-export interface RestrictFocusAPI {
-  // // Add your methods here
-  // paused: boolean;
-  // allFns: Map<symbol, Callback>;
-  // pausedFns: Map<symbol, boolean>;
-  // inWatchers: Watcher;
-  // outWatchers: Watcher;
-  // processedElems: WeakMap<Element, Set<symbol>>;
-  // processingQueued: boolean;
-  // outElems: Map<Element, Map<string, Set<Callback>>>;
-  // getSymbol(fn: Callback): symbol | undefined;
-  // getFn(symbol: symbol): Callback | undefined;
-  // setAction(selector: string, fn: Callback, watcherType: Watcher): symbol;
-  // in(selector: string, fn: Callback, processNow?: boolean): symbol;
-  // out(selector: string, fn: Callback): symbol;
-  // clear(symbol: symbol): void;
-  // pause(symbol: symbol): symbol;
-  // pauseAll(): void;
-  // resume(symbol: symbol, processNow?: boolean): symbol;
-  // resumeAll(): void;
-}
+export interface RestrictFocusAPI {}
 
 class RestrictFocus implements RestrictFocusAPI {
   private static instance: RestrictFocus | null = null;
@@ -95,7 +75,6 @@ class RestrictFocus implements RestrictFocusAPI {
 
             // Focus to the previous/next focusable element.
             let index = focusableElemsArray.indexOf(self.activeElement);
-            console.log({ index, focused: self.activeElement });
             let tabToElem: HTMLElement | unknown;
             if (e.shiftKey) {
               tabToElem =
@@ -113,21 +92,21 @@ class RestrictFocus implements RestrictFocusAPI {
           }
         }
 
-        function preventOutsideClick(e: MouseEvent) {
+        function preventOutsideClick(e: MouseEvent | TouchEvent) {
           // If no activeBoundary is specified, then do nothing.
-          if (!restrictFocus.activeBoundary) return;
+          if (!self.activeBoundary) return;
 
           // Event is happening inside the activeBoundary, so do nothing.
-          if (e.composedPath().includes(restrictFocus.activeBoundary)) return;
+          if (e.composedPath().includes(self.activeBoundary)) return;
 
           // If we expressly allow this type of event, then let it pass through.
           const allowedEvents = self.allowEventsOnElement.get(
-            restrictFocus.activeBoundary
+            self.activeBoundary
           );
           if (allowedEvents?.includes(e.type)) {
             // Allowing the event outside the restrictedFocus list effectively pierces the focus,
             // meaning we actually want to remove restricted focusing on the active boundary.
-            restrictFocus.remove(restrictFocus.activeBoundary);
+            self.remove(self.activeBoundary);
             return;
           } else {
             e.preventDefault();
@@ -140,11 +119,11 @@ class RestrictFocus implements RestrictFocusAPI {
 
         window.addEventListener("focusin", handleFocusIn, eventOpts);
         window.addEventListener("keydown", handleKeyDown, eventOpts);
-        ["touchstart", "touchend", "mousedown", "mouseup", "click"].forEach(
-          (eventType) => {
-            window.addEventListener(eventType, preventOutsideClick, eventOpts);
-          }
-        );
+        (
+          ["touchstart", "touchend", "mousedown", "mouseup", "click"] as const
+        ).forEach((eventType) => {
+          window.addEventListener(eventType, preventOutsideClick, eventOpts);
+        });
       }
     }
 
@@ -161,11 +140,32 @@ class RestrictFocus implements RestrictFocusAPI {
   public boundaries: Array<HTMLElement> = [];
 
   focusableElements(element: HTMLElement) {
-    return new ShadowTreeWalker(element, { checkFocusable: true });
+    const walker = new ShadowTreeWalker(element, { checkFocusable: true });
+    return walker.walk();
   }
 
-  allChildElements(element: HTMLElement, asArray?: boolean) {
-    return new ShadowTreeWalker(element, { checkFocusable: false });
+  allChildElements(element: HTMLElement) {
+    const walker = new ShadowTreeWalker(element, { checkFocusable: false });
+    return walker.walk();
+  }
+
+  boundaryDefaultActiveElement(boundary: HTMLElement | undefined) {
+    if (!boundary) return;
+
+    // If the lastFocusedElementByBoundary has a reference to the boundary, then return it.
+    if (this.lastFocusedElementByBoundary.has(boundary)) {
+      const elem = this.lastFocusedElementByBoundary.get(boundary);
+      if (elem && elem.isConnected) {
+        // Set the activeElement for future reference.
+        this.activeElement = elem;
+        return elem;
+      }
+    }
+
+    // If all else failse, get the first focusable element within the boundary.
+    if (boundary) {
+      return Array.from(this.focusableElements(boundary))[0];
+    }
   }
 
   get activeElement() {
@@ -174,20 +174,7 @@ class RestrictFocus implements RestrictFocusAPI {
       return this._activeElement;
     }
 
-    // If the lastFocusedElementByBoundary has a reference to the activeBoundary, then return it.
-    if (this.lastFocusedElementByBoundary.has(this.activeBoundary)) {
-      const elem = this.lastFocusedElementByBoundary.get(this.activeBoundary);
-      if (elem && elem.isConnected) {
-        // Set the activeElement for future reference.
-        this.activeElement = elem;
-        return elem;
-      }
-    }
-
-    // If all else failse, get the first focusable element within the activeBoundary.
-    if (this.activeBoundary) {
-      return Array.from(this.focusableElements(this.activeBoundary))[0];
-    }
+    return this.boundaryDefaultActiveElement(this.activeBoundary);
   }
 
   set activeElement(element: HTMLElement | undefined) {
@@ -265,9 +252,7 @@ class RestrictFocus implements RestrictFocusAPI {
     this.lastFocusedElementByBoundary.delete(element);
 
     // Focus on the current boundary's last focused element. If there is none, focus on the first focusable element.
-    this.activeElement =
-      this.lastFocusedElementByBoundary.get(this.activeBoundary) ||
-      Array.from(this.focusableElements(this.activeBoundary))[0];
+    this.activeElement = this.boundaryDefaultActiveElement(this.activeBoundary);
 
     this.fireEvent({
       element,

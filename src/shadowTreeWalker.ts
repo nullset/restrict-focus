@@ -1,6 +1,5 @@
 interface Options {
   checkFocusable?: boolean;
-  asArray?: boolean;
 }
 
 export function isFocusable(node: HTMLElement): boolean {
@@ -22,16 +21,15 @@ export function isFocusable(node: HTMLElement): boolean {
 export default class ShadowTreeWalker {
   private root: Element;
   private checkFocusable: boolean;
-  private elements: Set<Element>;
+  private elements: Set<HTMLElement>;
 
   constructor(root: Element, opts: Options = { checkFocusable: false }) {
     this.root = root;
     this.checkFocusable = opts.checkFocusable || false;
     this.elements = new Set();
-    return this.walk() as unknown as ShadowTreeWalker;
   }
 
-  walk(): Set<Element> {
+  walk(): Set<HTMLElement> {
     this.walkNode(this.root);
     return this.elements;
   }
@@ -45,14 +43,14 @@ export default class ShadowTreeWalker {
     if (node instanceof HTMLSlotElement) {
       const assigned = node.assignedElements({ flatten: true });
       assigned.forEach((element) => {
-        if (this.isValidNode(element)) {
+        if (element instanceof HTMLElement && this.isValidNode(element)) {
           this.elements.add(element);
         }
         this.walkNode(element);
       });
     }
 
-    if (node instanceof Element && this.isValidNode(node)) {
+    if (node instanceof HTMLElement && this.isValidNode(node)) {
       this.elements.add(node);
     }
 
