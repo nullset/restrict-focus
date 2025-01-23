@@ -296,3 +296,5 @@ const instance = RestrictFocus.getInstance();
 // Default export provides the same singleton instance as window.restrictFocus
 // Just offers a more TypeScript-friendly import method
 export default instance;
+
+export { ShadowTreeWalker, isFocusable };
