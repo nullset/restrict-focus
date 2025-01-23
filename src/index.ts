@@ -202,6 +202,9 @@ class RestrictFocus implements RestrictFocusAPI {
     element: HTMLElement,
     options = { allowedEvents: [], callback: undefined }
   ) {
+    // Do nothing if the most recently added boundary is the same as the one we're trying to add.
+    if (this.activeBoundary === element) return;
+
     const previouslyFocused = this.activeElement;
     this.boundaries.push(element);
     this.allowEventsOnElement.set(element, options.allowedEvents);
