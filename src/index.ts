@@ -114,20 +114,20 @@ class RestrictFocus implements RestrictFocusAPI {
         }
 
         function preventOutsideClick(e: MouseEvent) {
-          // If no activeElement is specified, then do nothing.
-          if (!restrictFocus.activeElement) return;
+          // If no activeBoundary is specified, then do nothing.
+          if (!restrictFocus.activeBoundary) return;
 
-          // Event is happening inside the activeElement, so do nothing.
-          if (e.composedPath().includes(restrictFocus.activeElement)) return;
+          // Event is happening inside the activeBoundary, so do nothing.
+          if (e.composedPath().includes(restrictFocus.activeBoundary)) return;
 
           // If we expressly allow this type of event, then let it pass through.
           const allowedEvents = self.allowEventsOnElement.get(
-            restrictFocus.activeElement
+            restrictFocus.activeBoundary
           );
           if (allowedEvents?.includes(e.type)) {
             // Allowing the event outside the restrictedFocus list effectively pierces the focus,
             // meaning we actually want to disable restricted focusing on this particular element.
-            restrictFocus.remove(restrictFocus.activeElement);
+            restrictFocus.remove(restrictFocus.activeBoundary);
             return;
           } else {
             e.preventDefault();
@@ -136,13 +136,13 @@ class RestrictFocus implements RestrictFocusAPI {
           }
         }
 
-        window.addEventListener("focusin", handleFocusIn, { capture: true });
-        window.addEventListener("keydown", handleKeyDown, { capture: true });
+        const eventOpts = { capture: true, bubbles: true, cancelable: true };
+
+        window.addEventListener("focusin", handleFocusIn, eventOpts);
+        window.addEventListener("keydown", handleKeyDown, eventOpts);
         ["touchstart", "touchend", "mousedown", "mouseup", "click"].forEach(
           (eventType) => {
-            // window.addEventListener(eventType, preventOutsideClick, {
-            //   capture: true,
-            // });
+            window.addEventListener(eventType, preventOutsideClick, eventOpts);
           }
         );
       }
