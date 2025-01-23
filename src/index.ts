@@ -126,7 +126,7 @@ class RestrictFocus implements RestrictFocusAPI {
           );
           if (allowedEvents?.includes(e.type)) {
             // Allowing the event outside the restrictedFocus list effectively pierces the focus,
-            // meaning we actually want to disable restricted focusing on this particular element.
+            // meaning we actually want to remove restricted focusing on the active boundary.
             restrictFocus.remove(restrictFocus.activeBoundary);
             return;
           } else {
