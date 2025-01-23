@@ -1,6 +1,6 @@
 {
   "name": "restrict-focus",
-  "version": "0.2.0-test1",
+  "version": "0.2.0-test4",
   "description": "A small library to restrict focus/tabbing to only within a specified element. Shadow DOM aware, so it works with web components.",
   "homepage": "https://github.com/nullset/restrict-focus",
   "files": [
