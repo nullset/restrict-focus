@@ -15,6 +15,7 @@ export function isFocusable(node: HTMLElement) {
   if (node.hasAttribute("inert")) return false;
   if (node instanceof HTMLLinkElement && !node.href) return false;
 
+  // Check if element is visible.
   const { width, height } = node.getBoundingClientRect();
   if (!width || !height) return false;
 
