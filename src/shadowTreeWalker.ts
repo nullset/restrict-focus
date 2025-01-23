@@ -1,5 +1,6 @@
 interface Options {
   checkFocusable?: boolean;
+  filterTagName?: string;
 }
 
 export function isFocusable(node: HTMLElement): boolean {
@@ -21,11 +22,16 @@ export function isFocusable(node: HTMLElement): boolean {
 export default class ShadowTreeWalker {
   private root: Element;
   private checkFocusable: boolean;
+  private filterTagName: string;
   private elements: Set<HTMLElement>;
 
-  constructor(root: Element, opts: Options = { checkFocusable: false }) {
+  constructor(
+    root: Element,
+    opts: Options = { checkFocusable: false, filterTagName: "" }
+  ) {
     this.root = root;
     this.checkFocusable = opts.checkFocusable || false;
+    this.filterTagName = (opts.filterTagName || "").toUpperCase();
     this.elements = new Set();
   }
 
@@ -35,8 +41,15 @@ export default class ShadowTreeWalker {
   }
 
   private isValidNode(node: Element): boolean {
-    if (!this.checkFocusable) return true;
-    return isFocusable(node as HTMLElement);
+    let returnableSet = new Set([true]);
+    if (this.filterTagName) {
+      returnableSet.add(node.tagName === this.filterTagName);
+    }
+    if (this.checkFocusable) {
+      returnableSet.add(isFocusable(node as HTMLElement));
+    }
+
+    return returnableSet.has(false) ? false : true;
   }
 
   private walkNode(node: Element | Node): void {
