@@ -14,8 +14,91 @@ interface EventDetail {
   currentElementWithFocus?: HTMLElement;
 }
 
+interface AddOptions {
+  allowedEvents?: string[];
+  callback?: (element: HTMLElement) => void;
+}
+
+interface RemoveOptions {
+  callback?: (element: HTMLElement) => void;
+}
+
 // The public restrictFocus API interface
-export interface RestrictFocusAPI {}
+export interface RestrictFocusAPI {
+  /**
+   * A WeakMap of HTMLElements to an array of allowed events.
+   */
+  allowEventsOnElement: WeakMap<HTMLElement, Array<string>>;
+
+  /**
+   * A WeakMap of HTMLElements to the last focused element within that element.
+   */
+  lastFocusedElementByBoundary: WeakMap<HTMLElement, HTMLElement>;
+
+  /**
+   * An array of HTMLElements that are currently acting as focus boundaries.
+   */
+  boundaries: Array<HTMLElement>;
+
+  /**
+   * Returns a Set of all focusable elements within a given element.
+   * @param element The HTML element to search within.
+   */
+  focusableElements: (element: HTMLElement) => Set<HTMLElement>;
+
+  /**
+   * Returns a Set of all child elements within a given element.
+   * @param element The HTML element to search within.
+   */
+  allChildElements: (element: HTMLElement) => Set<HTMLElement>;
+
+  /**
+   * The currently focused element.
+   * If the activeElement is not connected, then it will return either the last focused element within the activeBoundary, the first focusable element within the activeBoundary, or undefined.
+   */
+  activeElement: HTMLElement | undefined;
+
+  /**
+   * The currently active boundary element.
+   */
+  activeBoundary: HTMLElement | undefined;
+
+  /**
+   * Adds an element as a focus boundary
+   * @param element The HTML element to add as a boundary.
+   * @param options Configuration options for the boundary.
+   * @param options.allowedEvents List of events that are allowed to propagate.
+   * @param options.callback Optional callback function called after adding the boundary.
+   */
+  add(
+    element: HTMLElement,
+    options?: {
+      allowedEvents?: string[];
+      callback?: (element: HTMLElement) => void;
+    }
+  ): void;
+
+  /**
+   * Removes an element as a focus boundary
+   * @param element The HTML element to remove as a boundary
+   * @param options Configuration options for the boundary
+   * @param options.callback Optional callback function called after removing the boundary
+   */
+  remove(
+    element: HTMLElement,
+    options?: { callback?: (element: HTMLElement) => void }
+  ): void;
+
+  /**
+   * A collection of utility functions.
+   * @property ShadowTreeWalker A class for walking the shadow DOM tree.
+   * @property isFocusable A function to determine if an element is focusable.
+   */
+  utilities: {
+    ShadowTreeWalker: typeof ShadowTreeWalker;
+    isFocusable: typeof isFocusable;
+  };
+}
 
 class RestrictFocus implements RestrictFocusAPI {
   private static instance: RestrictFocus | null = null;
@@ -133,23 +216,23 @@ class RestrictFocus implements RestrictFocusAPI {
   // ----------------- API ----------------- //
 
   private _activeElement?: HTMLElement;
-  private allowEventsOnElement = new WeakMap();
+  public allowEventsOnElement = new WeakMap();
   private origTabIndexSet = new WeakSet();
-  private lastFocusedElementByBoundary = new WeakMap();
+  public lastFocusedElementByBoundary = new WeakMap();
 
   public boundaries: Array<HTMLElement> = [];
 
-  focusableElements(element: HTMLElement) {
+  public focusableElements(element: HTMLElement) {
     const walker = new ShadowTreeWalker(element, { checkFocusable: true });
     return walker.walk();
   }
 
-  allChildElements(element: HTMLElement) {
+  public allChildElements(element: HTMLElement) {
     const walker = new ShadowTreeWalker(element, { checkFocusable: false });
     return walker.walk();
   }
 
-  boundaryDefaultActiveElement(boundary: HTMLElement | undefined) {
+  private boundaryDefaultActiveElement(boundary: HTMLElement | undefined) {
     if (!boundary) return;
 
     // If the lastFocusedElementByBoundary has a reference to the boundary, then return it.
@@ -198,9 +281,9 @@ class RestrictFocus implements RestrictFocusAPI {
       .find((boundary) => boundary.isConnected);
   }
 
-  add(
+  public add(
     element: HTMLElement,
-    options = { allowedEvents: [], callback: undefined }
+    options: AddOptions = { allowedEvents: [], callback: undefined }
   ) {
     // Do nothing if the most recently added boundary is the same as the one we're trying to add.
     if (this.activeBoundary === element) return;
@@ -230,10 +313,12 @@ class RestrictFocus implements RestrictFocusAPI {
 
     // @ts-ignore
     options?.callback?.call(element, element);
-    return this;
   }
 
-  remove(element: HTMLElement, options = { callback: undefined }) {
+  public remove(
+    element: HTMLElement,
+    options: RemoveOptions = { callback: undefined }
+  ) {
     let deleteIndex;
     for (let i = this.boundaries.length - 1; i > -1; i--) {
       if (this.boundaries[i] === element) {
@@ -265,7 +350,6 @@ class RestrictFocus implements RestrictFocusAPI {
 
     // @ts-ignore
     options?.callback?.call(element, element);
-    return this;
   }
 
   private fireEvent({
@@ -292,7 +376,7 @@ class RestrictFocus implements RestrictFocusAPI {
     element.dispatchEvent(event);
   }
 
-  utilities = { ShadowTreeWalker, isFocusable };
+  public utilities = { ShadowTreeWalker, isFocusable };
 }
 
 // Create and export the singleton instance

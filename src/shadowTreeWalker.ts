@@ -19,37 +19,60 @@ export function isFocusable(node: HTMLElement): boolean {
   return true;
 }
 
+interface Options {
+  checkFocusable?: boolean;
+  matches?: string;
+}
+export interface ShadowTreeWalkerAPI {
+  root: Element;
+  checkFocusable: boolean;
+  filterTagName: string;
+  elements: Set<HTMLElement>;
+
+  constructor(root: Element, opts?: Options): void;
+  walk(): Set<HTMLElement>;
+}
 export default class ShadowTreeWalker {
   private root: Element;
   private checkFocusable: boolean;
-  private filterTagName: string;
+  private matches: string;
   private elements: Set<HTMLElement>;
 
+  /**
+   * Creates a new ShadowTreeWalker instance.
+   * @param root An HTML element to start walking from.
+   * @param opts Options to configure the walker.
+   * @param opts.checkFocusable If true, the `walk` method will only return focusable elements.
+   * @param opts.matches If provided, the `walk` method will only return elements that matches the provided value (ex. `input[type="number"]` will return only `<input type="number">` elements).
+   */
   constructor(
     root: Element,
-    opts: Options = { checkFocusable: false, filterTagName: "" }
+    opts: Options = { checkFocusable: false, matches: "" }
   ) {
     this.root = root;
     this.checkFocusable = opts.checkFocusable || false;
-    this.filterTagName = (opts.filterTagName || "").toUpperCase();
+    this.matches = opts.matches || "";
     this.elements = new Set();
   }
 
+  /**
+   * A function to walk the shadow tree and return a set of HTMLElements.
+   * @returns A set of HTMLElements found in the shadow tree.
+   */
   walk(): Set<HTMLElement> {
     this.walkNode(this.root);
     return this.elements;
   }
 
   private isValidNode(node: Element): boolean {
-    let returnableSet = new Set([true]);
-    if (this.filterTagName) {
-      returnableSet.add(node.tagName === this.filterTagName);
+    if (this.matches) {
+      if (!node.matches(this.matches)) return false;
     }
     if (this.checkFocusable) {
-      returnableSet.add(isFocusable(node as HTMLElement));
+      if (!isFocusable(node as HTMLElement)) return false;
     }
 
-    return returnableSet.has(false) ? false : true;
+    return true;
   }
 
   private walkNode(node: Element | Node): void {
