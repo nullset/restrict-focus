@@ -1,11 +1,9 @@
-// @ts-nocheck
-
 interface Options {
   checkFocusable?: boolean;
   asArray?: boolean;
 }
 
-export function isFocusable(node: HTMLElement) {
+export function isFocusable(node: HTMLElement): boolean {
   if (!(node instanceof HTMLElement)) return false;
   if (!node.isConnected) return false;
   if (node.hasAttribute("disabled")) return false;
@@ -15,7 +13,6 @@ export function isFocusable(node: HTMLElement) {
   if (node.hasAttribute("inert")) return false;
   if (node instanceof HTMLLinkElement && !node.href) return false;
 
-  // Check if element is visible.
   const { width, height } = node.getBoundingClientRect();
   if (!width || !height) return false;
 
@@ -23,28 +20,28 @@ export function isFocusable(node: HTMLElement) {
 }
 
 export default class ShadowTreeWalker {
-  constructor(
-    root: Element,
-    opts: Options = { checkFocusable: false }
-  ): Set<Element> {
+  private root: Element;
+  private checkFocusable: boolean;
+  private elements: Set<Element>;
+
+  constructor(root: Element, opts: Options = { checkFocusable: false }) {
     this.root = root;
-    this.checkFocusable = opts.checkFocusable;
+    this.checkFocusable = opts.checkFocusable || false;
     this.elements = new Set();
-    return this.walk();
+    return this.walk() as unknown as ShadowTreeWalker;
   }
 
-  walk() {
+  walk(): Set<Element> {
     this.walkNode(this.root);
     return this.elements;
   }
 
-  isValidNode(node) {
+  private isValidNode(node: Element): boolean {
     if (!this.checkFocusable) return true;
-    return isFocusable(node);
+    return isFocusable(node as HTMLElement);
   }
 
-  walkNode(node) {
-    // Handle slotted elements
+  private walkNode(node: Element | Node): void {
     if (node instanceof HTMLSlotElement) {
       const assigned = node.assignedElements({ flatten: true });
       assigned.forEach((element) => {
@@ -55,21 +52,18 @@ export default class ShadowTreeWalker {
       });
     }
 
-    // Check if current node is focusable
-    if (this.isValidNode(node)) {
+    if (node instanceof Element && this.isValidNode(node)) {
       this.elements.add(node);
     }
 
-    // Walk shadow root
     if (node instanceof Element && node.shadowRoot) {
       this.walkChildren(node.shadowRoot);
     }
 
-    // Walk regular children
     this.walkChildren(node);
   }
 
-  walkChildren(node) {
+  private walkChildren(node: Node): void {
     const children = node.childNodes;
     if (children) {
       Array.from(children).forEach((child) => this.walkNode(child));
