@@ -72,14 +72,13 @@ class RestrictFocus implements RestrictFocusAPI {
 
         function handleKeyDown(e: KeyboardEvent) {
           if (e.key === "Tab") {
-            e.preventDefault();
+            // If there is no activeBoundary, then do nothing as we're not restricting focus.
+            if (!self.activeBoundary) return;
 
-            // TODO: Flesh this out.
+            // If the activeElement is not connected, then do nothing.
             if (!self.activeElement || !self.activeElement.isConnected) {
               return;
             }
-
-            if (!self.activeBoundary) return;
 
             const focusableElems = self.focusableElements(self.activeBoundary);
             const focusableElemsArray = Array.from(focusableElems);
@@ -108,6 +107,7 @@ class RestrictFocus implements RestrictFocusAPI {
             }
 
             if (tabToElem instanceof HTMLElement) {
+              e.preventDefault();
               self.activeElement = tabToElem;
             }
           }
@@ -169,7 +169,25 @@ class RestrictFocus implements RestrictFocusAPI {
   }
 
   get activeElement() {
-    return this._activeElement;
+    // If the _activeElement is already set and connected, then return it.
+    if (this._activeElement && this._activeElement.isConnected) {
+      return this._activeElement;
+    }
+
+    // If the lastFocusedElementByBoundary has a reference to the activeBoundary, then return it.
+    if (this.lastFocusedElementByBoundary.has(this.activeBoundary)) {
+      const elem = this.lastFocusedElementByBoundary.get(this.activeBoundary);
+      if (elem && elem.isConnected) {
+        // Set the activeElement for future reference.
+        this.activeElement = elem;
+        return elem;
+      }
+    }
+
+    // If all else failse, get the first focusable element within the activeBoundary.
+    if (this.activeBoundary) {
+      return Array.from(this.focusableElements(this.activeBoundary))[0];
+    }
   }
 
   set activeElement(element: HTMLElement | undefined) {
