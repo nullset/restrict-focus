@@ -5,6 +5,7 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>restrict-focus</title>
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <a href="http://google.com">Google</a>
@@ -12,6 +13,11 @@
     <button type="button">Tabbable thing at top</button>
     <div id="plain-div">
       <button type="button" id="first-thing">First thing</button>
+      <button type="button" id="second-thing" tabindex="-1">
+        Second thing
+      </button>
+      <span>Foo</span>
+      <button type="button" id="third-thing">Third thing</button>
     </div>
     <div id="app">
       <div id="first">
@@ -71,6 +77,6 @@
         </aha-hotkey>
       </div>
     </div>
-    <script type="module" src="/main.js"></script>
+    <script type="module" src="/main.ts"></script>
   </body>
 </html>
