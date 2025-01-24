@@ -1,5 +1,7 @@
-import restrictFocus, { getAllElements } from "./src/index";
-window.restrictFocus = restrictFocus;
+// @ts-nocheck
+
+import "./src/index";
+// window.restrictFocus = restrictFocus;
 
 const template = document.createElement("template");
 template.innerHTML = `
@@ -12,7 +14,7 @@ class WebComponentElement extends HTMLElement {
     super();
     this.attachShadow({ mode: "open" });
 
-    this.shadowRoot.appendChild(template.content.cloneNode(true));
+    this.shadowRoot?.appendChild(template.content.cloneNode(true));
   }
 }
 
@@ -118,6 +120,7 @@ window.addEventListener("keyup", (e) => {
 document.querySelectorAll("button.toggleFocus").forEach((button) => {
   button.addEventListener("click", (e) => {
     const section = e.target.closest("div[id]");
+    debugger;
     if (restrictFocus?.activeElement === section) {
       restrictFocus.remove(section);
     } else {
@@ -127,10 +130,19 @@ document.querySelectorAll("button.toggleFocus").forEach((button) => {
 });
 
 setTimeout(() => {
-  // restrictFocus.add(document.getElementById("plain-div"));
-  restrictFocus.add(document.getElementById("third"));
-  // restrictFocus.add(document.getElementById("second"), {
-  //   // Re-enable to test piercing the restriction via some event.
-  //   allowedEvents: ["mousedown", "mouseup", "click"],
-  // });
+  restrictFocus.add(document.getElementById("plain-div"));
+  // restrictFocus.add(document.getElementById("third"));
+
+  setTimeout(() => {
+    restrictFocus.add(document.getElementById("second"), {
+      // Re-enable to test piercing the restriction via some event.
+      allowedEvents: ["mousedown", "mouseup", "click"],
+    });
+
+    document.getElementById("third-thing")?.remove();
+
+    setTimeout(() => {
+      restrictFocus.remove(document.getElementById("second"));
+    }, 2000);
+  }, 2000);
 }, 2000);

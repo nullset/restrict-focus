@@ -1,19 +1,20 @@
 {
   "name": "restrict-focus",
-  "version": "0.1.12",
+  "version": "0.2.0",
   "description": "A small library to restrict focus/tabbing to only within a specified element. Shadow DOM aware, so it works with web components.",
   "homepage": "https://github.com/nullset/restrict-focus",
   "files": [
     "dist"
   ],
-  "main": "./dist/restrict-focus.umd.js",
-  "module": "./dist/restrict-focus.es.js",
+  "type": "module",
   "exports": {
     ".": {
-      "import": "./dist/restrict-focus.es.js",
-      "require": "./dist/restrict-focus.umd.js"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/restrict-focus.js",
+      "default": "./dist/restrict-focus.js"
     }
   },
+  "types": "./dist/index.d.ts",
   "keywords": [
     "focus",
     "tab",
@@ -29,6 +30,9 @@
     "build": "vite build"
   },
   "devDependencies": {
-    "vite": "^2.6.4"
+    "@types/node": "^22.10.9",
+    "typescript": "~5.7.3",
+    "vite": "^6.0.5",
+    "vite-plugin-dts": "^4.5.0"
   }
 }
