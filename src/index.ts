@@ -226,7 +226,9 @@ class RestrictFocus implements RestrictFocusAPI {
 
   public focusableElements(element: HTMLElement) {
     const walker = new ShadowTreeWalker(element, { checkFocusable: true });
-    return walker.walk();
+    return new Set(
+      Array.from(walker.walk()).sort((a, b) => b.tabIndex - a.tabIndex)
+    );
   }
 
   public allChildElements(element: HTMLElement) {
