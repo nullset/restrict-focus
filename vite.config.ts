@@ -8,11 +8,12 @@ export default defineConfig({
       entry: resolve(__dirname, "src/index.ts"),
       name: "restrictFocus",
       fileName: "restrict-focus",
-      formats: ["es", "umd"],
+      formats: ["es"],
     },
     rollupOptions: {
       // external: [], // specify external dependencies here if any
       output: {
+        exports: "auto",
         // Provide globals for UMD build if you have external dependencies
         globals: {
           // 'some-dependency': 'SomeDependency'
@@ -23,6 +24,7 @@ export default defineConfig({
   plugins: [
     dts({
       insertTypesEntry: true,
+      rollupTypes: true, // This helps generate cleaner .d.ts files
     }),
   ],
   server: {
