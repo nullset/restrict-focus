@@ -1,6 +1,6 @@
 interface Options {
   checkFocusable?: boolean;
-  filterTagName?: string;
+  matches?: string;
 }
 
 export function isFocusable(node: HTMLElement): boolean {
@@ -19,26 +19,22 @@ export function isFocusable(node: HTMLElement): boolean {
   return true;
 }
 
-interface Options {
-  checkFocusable?: boolean;
-  matches?: string;
-}
-
 /**
- * Walks through DOM elements including Shadow DOM
+ * Walks through DOM elements including Shadow DOM using the TreeWalker API,
+ * maintaining proper order of elements across shadow boundaries and slots.
  */
 export default class ShadowTreeWalker {
   private root: Element;
   private checkFocusable: boolean;
   private matches: string;
-  private elements: Set<HTMLElement>;
+  private elements: Array<HTMLElement>;
 
   /**
    * Creates a new ShadowTreeWalker instance.
    * @param root An HTML element to start walking from.
    * @param opts Options to configure the walker.
    * @param opts.checkFocusable If true, the `walk` method will only return focusable elements.
-   * @param opts.matches If provided, the `walk` method will only return elements that matches the provided value (ex. `input[type="number"]` will return only `<input type="number">` elements).
+   * @param opts.matches If provided, the `walk` method will only return elements that matches the provided value.
    */
   constructor(
     root: Element,
@@ -47,55 +43,64 @@ export default class ShadowTreeWalker {
     this.root = root;
     this.checkFocusable = opts.checkFocusable || false;
     this.matches = opts.matches || "";
-    this.elements = new Set();
+    this.elements = [];
   }
 
   /**
    * A function to walk the shadow tree and return a set of HTMLElements.
-   * @returns A set of HTMLElements found in the shadow tree.
+   * @returns A set of HTMLElements found in the shadow tree in document order.
    */
   walk(): Set<HTMLElement> {
     this.walkNode(this.root);
-    return this.elements;
+    return new Set(this.elements);
   }
 
   private isValidNode(node: Element): boolean {
-    if (this.matches) {
-      if (!node.matches(this.matches)) return false;
-    }
-    if (this.checkFocusable) {
-      if (!isFocusable(node as HTMLElement)) return false;
-    }
-
+    if (this.matches && !node.matches(this.matches)) return false;
+    if (this.checkFocusable && !isFocusable(node as HTMLElement)) return false;
     return true;
   }
 
-  private walkNode(node: Element | Node): void {
-    if (node instanceof HTMLSlotElement) {
-      const assigned = node.assignedElements({ flatten: true });
-      assigned.forEach((element) => {
-        if (element instanceof HTMLElement && this.isValidNode(element)) {
-          this.elements.add(element);
+  private walkNode(node: Node): void {
+    const walker = document.createTreeWalker(
+      node,
+      NodeFilter.SHOW_ELEMENT,
+      null
+    );
+
+    let currentNode: Node | null = walker.currentNode;
+
+    while (currentNode) {
+      if (currentNode instanceof Element) {
+        // Handle the current node
+        if (
+          currentNode instanceof HTMLElement &&
+          this.isValidNode(currentNode)
+        ) {
+          this.elements.push(currentNode);
         }
-        this.walkNode(element);
-      });
-    }
 
-    if (node instanceof HTMLElement && this.isValidNode(node)) {
-      this.elements.add(node);
-    }
+        // Handle shadow DOM
+        if (currentNode.shadowRoot) {
+          this.walkNode(currentNode.shadowRoot);
+        }
 
-    if (node instanceof Element && node.shadowRoot) {
-      this.walkChildren(node.shadowRoot);
-    }
+        // Handle slot elements
+        if (currentNode instanceof HTMLSlotElement) {
+          const assigned = currentNode.assignedElements({ flatten: true });
+          for (const element of assigned) {
+            if (element instanceof HTMLElement && this.isValidNode(element)) {
+              this.elements.push(element);
+            }
+            // Recursively walk through the assigned elements
+            if (element instanceof Element) {
+              this.walkNode(element);
+            }
+          }
+        }
+      }
 
-    this.walkChildren(node);
-  }
-
-  private walkChildren(node: Node): void {
-    const children = node.childNodes;
-    if (children) {
-      Array.from(children).forEach((child) => this.walkNode(child));
+      currentNode = walker.nextNode();
     }
   }
 }

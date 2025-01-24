@@ -140,10 +140,10 @@ setTimeout(() => {
       allowedEvents: ["mousedown", "mouseup", "click"],
     });
 
-    document.getElementById("third-thing")?.remove();
+    // document.getElementById("third-thing")?.remove();
 
-    setTimeout(() => {
-      restrictFocus.remove(document.getElementById("second"));
-    }, timeout);
+    // setTimeout(() => {
+    //   restrictFocus.remove(document.getElementById("second"));
+    // }, timeout);
   }, timeout);
 }, timeout);
