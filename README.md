@@ -115,6 +115,10 @@ restrictFocus.remove(element, {callback: () => { /* some function */ }})`
 
 ## Notable updates
 
+### 0.2.1
+
+Fix issue with allowed events terminating early when more than one allowed event type is specified.
+
 ### 0.2.0
 
 Fixed some issues in codebase that caused focusable elements to appear out of order. Sped up diving into nested shadow roots by using the TreeWalker API. Changed a few accessor names between 0.1.x codebase and 0.2.x. Added typescript typings. Completely changed how focusing was managed, should be more performant, more predictable, and easier to reason about the codebase.

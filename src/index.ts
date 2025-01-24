@@ -173,7 +173,13 @@ class RestrictFocus implements RestrictFocusAPI {
           }
         }
 
-        function preventOutsideClick(e: MouseEvent | TouchEvent) {
+        function preventOutsideClick(
+          e: MouseEvent | TouchEvent,
+          boundaryElement: HTMLElement
+        ) {
+          // If the passed boundaryElement is not the activeBoundary, then do nothing.
+          if (boundaryElement !== self.activeBoundary) return;
+
           // If no activeBoundary is specified, then do nothing.
           if (!self.activeBoundary) return;
 
@@ -187,23 +193,30 @@ class RestrictFocus implements RestrictFocusAPI {
           if (allowedEvents?.includes(e.type)) {
             // Allowing the event outside the restrictedFocus list effectively pierces the focus,
             // meaning we actually want to remove restricted focusing on the active boundary.
+            self.activeBoundary;
             self.remove(self.activeBoundary);
-            return;
           } else {
             e.preventDefault();
             e.stopImmediatePropagation();
-            return;
           }
         }
 
-        const eventOpts = { capture: true, bubbles: true, cancelable: true };
+        const eventOpts = { capture: true, bubbles: true, cancelable: false };
 
         window.addEventListener("focusin", handleFocusIn, eventOpts);
         window.addEventListener("keydown", handleKeyDown, eventOpts);
         (
           ["touchstart", "touchend", "mousedown", "mouseup", "click"] as const
         ).forEach((eventType) => {
-          window.addEventListener(eventType, preventOutsideClick, eventOpts);
+          window.addEventListener(
+            eventType,
+            (e) => {
+              if (self.activeBoundary) {
+                preventOutsideClick(e, self.activeBoundary);
+              }
+            },
+            eventOpts
+          );
         });
       }
     }
@@ -400,3 +413,7 @@ const instance = RestrictFocus.getInstance();
 export default instance;
 
 export { ShadowTreeWalker, isFocusable };
+
+window.addEventListener("click", (e) => {
+  debugger;
+});

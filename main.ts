@@ -129,6 +129,7 @@ document.querySelectorAll("button.toggleFocus").forEach((button) => {
   });
 });
 
+const timeout = 2000;
 setTimeout(() => {
   restrictFocus.add(document.getElementById("plain-div"));
   // restrictFocus.add(document.getElementById("third"));
@@ -143,6 +144,6 @@ setTimeout(() => {
 
     setTimeout(() => {
       restrictFocus.remove(document.getElementById("second"));
-    }, 2000);
-  }, 2000);
-}, 2000);
+    }, timeout);
+  }, timeout);
+}, timeout);
