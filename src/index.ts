@@ -1,5 +1,3 @@
-//// @ts-nocheck
-
 import ShadowTreeWalker, { isFocusable } from "./shadowTreeWalker";
 
 declare global {
@@ -27,11 +25,6 @@ interface RemoveOptions {
 
 // The public restrictFocus API interface
 export interface RestrictFocusAPI {
-  /**
-   * A WeakMap of HTMLElements to an array of allowed events.
-   */
-  allowEventsOnElement: WeakMap<HTMLElement, Array<string>>;
-
   /**
    * A WeakMap of HTMLElements to the last focused element within that element.
    */
@@ -102,6 +95,9 @@ export interface RestrictFocusAPI {
   };
 }
 
+/**
+ * Manages focus restriction within specified DOM boundaries
+ */
 class RestrictFocus implements RestrictFocusAPI {
   private static instance: RestrictFocus | null = null;
 
@@ -115,7 +111,7 @@ class RestrictFocus implements RestrictFocusAPI {
   // Static method to get or create the instance
   public static getInstance(): RestrictFocus {
     if (typeof window !== "undefined" && window.restrictFocus) {
-      return window.restrictFocus as RestrictFocus;
+      // return window.restrictFocus as RestrictFocus;
     }
 
     if (!RestrictFocus.instance) {
@@ -217,9 +213,21 @@ class RestrictFocus implements RestrictFocusAPI {
 
   // ----------------- API ----------------- //
 
+  /**
+   * Currently focused element
+   */
   private _activeElement?: HTMLElement;
-  public allowEventsOnElement = new WeakMap();
+
+  /**
+   * A WeakMap of HTMLElements to an array of allowed events.
+   */
+  private allowEventsOnElement = new WeakMap();
+
+  /**
+   * Maps elements to their original tabIndex
+   */
   private origTabIndexSet = new WeakSet();
+
   public lastFocusedElementByBoundary = new WeakMap();
 
   public boundaries: Array<HTMLElement> = [];

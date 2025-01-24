@@ -23,15 +23,10 @@ interface Options {
   checkFocusable?: boolean;
   matches?: string;
 }
-export interface ShadowTreeWalkerAPI {
-  root: Element;
-  checkFocusable: boolean;
-  filterTagName: string;
-  elements: Set<HTMLElement>;
 
-  constructor(root: Element, opts?: Options): void;
-  walk(): Set<HTMLElement>;
-}
+/**
+ * Walks through DOM elements including Shadow DOM
+ */
 export default class ShadowTreeWalker {
   private root: Element;
   private checkFocusable: boolean;
