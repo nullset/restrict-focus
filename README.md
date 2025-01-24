@@ -115,6 +115,10 @@ restrictFocus.remove(element, {callback: () => { /* some function */ }})`
 
 ## Notable updates
 
+### 0.2.0
+
+Fixed some issues in codebase that caused focusable elements to appear out of order. Sped up diving into nested shadow roots by using the TreeWalker API. Changed a few accessor names between 0.1.x codebase and 0.2.x. Added typescript typings. Breaking changes between 0.1.x and 0.2.x.
+
 ### 0.1.12
 
 Click events return an x/y coordinate pair. Ensure that this pair is always a number, greater than or equal to zero, and non-infinite.
