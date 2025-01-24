@@ -14,8 +14,10 @@ interface EventDetail {
   currentElementWithFocus?: HTMLElement;
 }
 
+type AllowedEvent = "click" | "mousedown" | "mouseup";
+
 interface AddOptions {
-  allowedEvents?: string[];
+  allowedEvents?: AllowedEvent[];
   callback?: (element: HTMLElement) => void;
 }
 
