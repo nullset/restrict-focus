@@ -152,8 +152,6 @@ class RestrictFocus implements RestrictFocusAPI {
               focusableElemsArray.unshift(self.activeBoundary);
             }
 
-            // TODO: Need to sort tabindexes.
-
             // Focus to the previous/next focusable element.
             let index = focusableElemsArray.indexOf(self.activeElement);
             let tabToElem: HTMLElement | unknown;
@@ -413,7 +411,3 @@ const instance = RestrictFocus.getInstance();
 export default instance;
 
 export { ShadowTreeWalker, isFocusable };
-
-window.addEventListener("click", (e) => {
-  debugger;
-});
