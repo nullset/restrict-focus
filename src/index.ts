@@ -269,6 +269,7 @@ class RestrictFocus implements RestrictFocusAPI {
       return this._activeElement;
     }
 
+    // Otherwise, return the last focused element within the activeBoundary.
     return this.boundaryDefaultActiveElement(this.activeBoundary);
   }
 
